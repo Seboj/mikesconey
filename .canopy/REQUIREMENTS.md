@@ -99,7 +99,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements. Finalized during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -107,11 +107,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUN-02 | Phase 1 | Pending |
 | FOUN-03 | Phase 1 | Pending |
 | FOUN-04 | Phase 1 | Pending |
+| DSGN-01 | Phase 1 | Pending |
+| DSGN-03 | Phase 1 | Pending |
 | HOME-01 | Phase 2 | Pending |
 | HOME-02 | Phase 2 | Pending |
 | HOME-03 | Phase 2 | Pending |
 | HOME-04 | Phase 2 | Pending |
 | HOME-05 | Phase 2 | Pending |
+| DSGN-02 | Phase 2 | Pending |
 | MENU-01 | Phase 3 | Pending |
 | MENU-02 | Phase 3 | Pending |
 | MENU-03 | Phase 3 | Pending |
@@ -131,16 +134,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEOO-03 | Phase 6 | Pending |
 | SEOO-04 | Phase 6 | Pending |
 | SEOO-05 | Phase 6 | Pending |
-| DSGN-01 | Phase 1 | Pending |
-| DSGN-02 | Phase 2 | Pending |
-| DSGN-03 | Phase 1 | Pending |
 | DSGN-04 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 32 total
 - Mapped to phases: 32
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 after initial definition*
+*Last updated: 2026-03-01 after roadmap creation — traceability finalized*
