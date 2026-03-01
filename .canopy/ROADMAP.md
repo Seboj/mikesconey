@@ -10,7 +10,7 @@
 ## Phases
 
 - [x] **Phase 1: Foundation** - Scaffold the project, establish data layer, deploy skeleton to Cloudflare Pages (completed 2026-03-01)
-- [ ] **Phase 2: Homepage** - Build the public face of the restaurant — hero, hours, call to action
+- [x] **Phase 2: Homepage** - Build the public face of the restaurant — hero, hours, call to action (completed 2026-03-01)
 - [ ] **Phase 3: Menu** - Deliver the site's most important feature as a full HTML menu
 - [ ] **Phase 4: Gallery and About** - Owner-asset-dependent pages: photo gallery and brand story
 - [ ] **Phase 5: Contact and FAQ** - Location page with map and FAQ section targeting common visitor queries
@@ -42,7 +42,7 @@
   3. Tapping the phone number on a mobile device initiates a call directly
   4. The homepage has a distinct visual style that does not look like a generic Michigan coney island competitor site
   5. Instagram and Facebook links are visible and open the correct profiles
-**Plans**: TBD
+**Plans**: 02-01 (Hero + Hours), 02-02 (About Teaser + Social Proof), 02-03 (Nav Social Icons + Composition) -- 3/3 complete
 
 ### Phase 3: Menu
 **Goal**: Customers can read the full menu on their phone, organized by category, without downloading a PDF
@@ -95,7 +95,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/? | Complete    | 2026-03-01 |
-| 2. Homepage | 0/? | Not started | - |
+| 2. Homepage | 3/3 | Complete    | 2026-03-01 |
 | 3. Menu | 0/? | Not started | - |
 | 4. Gallery and About | 0/? | Not started | - |
 | 5. Contact and FAQ | 0/? | Not started | - |

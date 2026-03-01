@@ -12,14 +12,14 @@
 
 ## Current Position
 
-**Current Phase:** 2 — Homepage
+**Current Phase:** 3 -- Menu
 **Current Plan:** None started
-**Status:** Phase 1 complete, Phase 2 ready
+**Status:** Phase 2 complete, Phase 3 ready
 **Mode:** yolo (auto-advance, no approval gates)
 
 ```
-Progress: [##--------] 17% complete
-Phase 1 [####] | Phase 2 [----] | Phase 3 [----] | Phase 4 [----] | Phase 5 [----] | Phase 6 [----]
+Progress: [####------] 33% complete
+Phase 1 [####] | Phase 2 [####] | Phase 3 [----] | Phase 4 [----] | Phase 5 [----] | Phase 6 [----]
 ```
 
 ---
@@ -29,7 +29,7 @@ Phase 1 [####] | Phase 2 [----] | Phase 3 [----] | Phase 4 [----] | Phase 5 [---
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 1 | Foundation | FOUN-01, FOUN-02, FOUN-03, FOUN-04, DSGN-01, DSGN-03 | Complete (2026-03-01) |
-| 2 | Homepage | HOME-01, HOME-02, HOME-03, HOME-04, HOME-05, DSGN-02 | Not started |
+| 2 | Homepage | HOME-01, HOME-02, HOME-03, HOME-04, HOME-05, DSGN-02 | Complete (2026-03-01) |
 | 3 | Menu | MENU-01, MENU-02, MENU-03, MENU-04 | Not started |
 | 4 | Gallery and About | GALL-01, GALL-02, GALL-03, ABUT-01, ABUT-02 | Not started |
 | 5 | Contact and FAQ | CONT-01, CONT-02, CONT-03, CONT-04, FAQQ-01 | Not started |
@@ -93,8 +93,8 @@ None currently.
 ## Session Continuity
 
 **Last active:** 2026-03-01
-**Last action:** Phase 1 (Foundation) complete — Astro 5 + Tailwind CSS 4 scaffold, typed data layer, responsive layout with 5 pages
-**Next action:** Run `/canopy:discuss-phase 2` or `/canopy:plan-phase 2` to begin Homepage phase
+**Last action:** Phase 2 (Homepage) complete — Hero with SVG placeholder, hours card, about teaser, social proof, nav social icons. All 3 plans executed, verification passed.
+**Next action:** Run `/canopy:discuss-phase 3` or `/canopy:plan-phase 3` to begin Menu phase
 
 ---
 

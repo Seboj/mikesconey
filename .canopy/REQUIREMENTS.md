@@ -16,11 +16,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Homepage
 
-- [ ] **HOME-01**: Hero section with full-bleed food photography, restaurant name, and tagline that loads in under 2.5 seconds (LCP)
-- [ ] **HOME-02**: Hours of operation prominently displayed on homepage (not buried in footer)
-- [ ] **HOME-03**: Click-to-call phone number accessible from homepage
-- [ ] **HOME-04**: Brief about teaser with link to full About page
-- [ ] **HOME-05**: Social media links (Instagram, Facebook) visible on homepage
+- [x] **HOME-01**: Hero section with full-bleed food photography, restaurant name, and tagline that loads in under 2.5 seconds (LCP)
+- [x] **HOME-02**: Hours of operation prominently displayed on homepage (not buried in footer)
+- [x] **HOME-03**: Click-to-call phone number accessible from homepage
+- [x] **HOME-04**: Brief about teaser with link to full About page
+- [x] **HOME-05**: Social media links (Instagram, Facebook) visible on homepage
 
 ### Menu
 
@@ -62,7 +62,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Design
 
 - [x] **DSGN-01**: Mobile-responsive design that works on all screen sizes (375px and up)
-- [ ] **DSGN-02**: Visually striking design that stands out from generic Michigan coney island competitor sites
+- [x] **DSGN-02**: Visually striking design that stands out from generic Michigan coney island competitor sites
 - [x] **DSGN-03**: Self-hosted fonts (via Fontsource) for consistent typography without third-party DNS lookups
 - [ ] **DSGN-04**: Fast page loads — all pages under 2 seconds on mobile
 
@@ -109,12 +109,12 @@ Which phases cover which requirements. Finalized during roadmap creation.
 | FOUN-04 | Phase 1 | Complete |
 | DSGN-01 | Phase 1 | Complete |
 | DSGN-03 | Phase 1 | Complete |
-| HOME-01 | Phase 2 | Pending |
-| HOME-02 | Phase 2 | Pending |
-| HOME-03 | Phase 2 | Pending |
-| HOME-04 | Phase 2 | Pending |
-| HOME-05 | Phase 2 | Pending |
-| DSGN-02 | Phase 2 | Pending |
+| HOME-01 | Phase 2 | Complete |
+| HOME-02 | Phase 2 | Complete |
+| HOME-03 | Phase 2 | Complete |
+| HOME-04 | Phase 2 | Complete |
+| HOME-05 | Phase 2 | Complete |
+| DSGN-02 | Phase 2 | Complete |
 | MENU-01 | Phase 3 | Pending |
 | MENU-02 | Phase 3 | Pending |
 | MENU-03 | Phase 3 | Pending |
