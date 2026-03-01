@@ -31,14 +31,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Gallery
 
-- [ ] **GALL-01**: Photo gallery page displaying food and atmosphere photos
-- [ ] **GALL-02**: Gallery images optimized for web (WebP format, responsive sizes)
-- [ ] **GALL-03**: Gallery works gracefully with placeholder images until owner provides real photos
+- [x] **GALL-01**: Photo gallery page displaying food and atmosphere photos
+- [x] **GALL-02**: Gallery images optimized for web (WebP format, responsive sizes)
+- [x] **GALL-03**: Gallery works gracefully with placeholder images until owner provides real photos
 
 ### About
 
-- [ ] **ABUT-01**: About page telling Mike's Coney Island brand story with personality and Holly, MI community identity
-- [ ] **ABUT-02**: Static Google reviews callout featuring 3-5 highlighted customer reviews
+- [x] **ABUT-01**: About page telling Mike's Coney Island brand story with personality and Holly, MI community identity
+- [x] **ABUT-02**: Static Google reviews callout featuring 3-5 highlighted customer reviews
 
 ### Contact
 
@@ -119,11 +119,11 @@ Which phases cover which requirements. Finalized during roadmap creation.
 | MENU-02 | Phase 3 | Pending |
 | MENU-03 | Phase 3 | Pending |
 | MENU-04 | Phase 3 | Pending |
-| GALL-01 | Phase 4 | Pending |
-| GALL-02 | Phase 4 | Pending |
-| GALL-03 | Phase 4 | Pending |
-| ABUT-01 | Phase 4 | Pending |
-| ABUT-02 | Phase 4 | Pending |
+| GALL-01 | Phase 4 | Complete |
+| GALL-02 | Phase 4 | Complete |
+| GALL-03 | Phase 4 | Complete |
+| ABUT-01 | Phase 4 | Complete |
+| ABUT-02 | Phase 4 | Complete |
 | CONT-01 | Phase 5 | Pending |
 | CONT-02 | Phase 5 | Pending |
 | CONT-03 | Phase 5 | Pending |
