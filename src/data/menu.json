@@ -1,0 +1,268 @@
+{
+  "categories": [
+    {
+      "name": "Coney Dogs",
+      "description": "Our famous Michigan-style coneys — snappy natural-casing dogs loaded with our homemade chili sauce, diced onions, and yellow mustard.",
+      "items": [
+        {
+          "name": "Regular Coney",
+          "description": "Snappy natural-casing dog topped with our homemade coney sauce, diced onions, and yellow mustard.",
+          "price": "$3.49",
+          "tags": []
+        },
+        {
+          "name": "Cheese Coney",
+          "description": "Our classic coney smothered in melted cheddar cheese.",
+          "price": "$3.99",
+          "tags": []
+        },
+        {
+          "name": "Coney Island Special",
+          "description": "Two regular coneys, fries, and a drink — the full Michigan coney island experience.",
+          "price": "$8.99",
+          "tags": []
+        },
+        {
+          "name": "Chili Dog",
+          "description": "All-beef dog loaded with our hearty homemade chili and topped with shredded cheddar.",
+          "price": "$4.49",
+          "tags": []
+        },
+        {
+          "name": "Loose Burger",
+          "description": "Seasoned ground beef served loose on a steamed bun with onions and mustard — no patty, all flavor.",
+          "price": "$3.99",
+          "tags": []
+        },
+        {
+          "name": "Foot-Long Coney",
+          "description": "A foot-long natural-casing dog with double the coney sauce, onions, and mustard.",
+          "price": "$5.99",
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "Burgers",
+      "description": "Hand-pressed patties grilled to order on our flat-top. Served with lettuce, tomato, and pickle.",
+      "items": [
+        {
+          "name": "Hamburger",
+          "description": "Classic hand-pressed beef patty with lettuce, tomato, onion, and pickle.",
+          "price": "$5.99",
+          "tags": []
+        },
+        {
+          "name": "Cheeseburger",
+          "description": "Our classic burger topped with melted American cheese.",
+          "price": "$6.49",
+          "tags": []
+        },
+        {
+          "name": "Bacon Cheeseburger",
+          "description": "Thick-cut bacon and melted cheddar on a hand-pressed patty.",
+          "price": "$7.99",
+          "tags": []
+        },
+        {
+          "name": "Mushroom Swiss Burger",
+          "description": "Sauteed mushrooms and melted Swiss cheese on a juicy patty.",
+          "price": "$7.99",
+          "tags": []
+        },
+        {
+          "name": "Patty Melt",
+          "description": "Beef patty with grilled onions and Swiss cheese on toasted rye bread.",
+          "price": "$7.49",
+          "tags": []
+        },
+        {
+          "name": "Double Cheeseburger",
+          "description": "Two hand-pressed patties with double American cheese — for serious appetites.",
+          "price": "$9.49",
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "Sandwiches",
+      "description": "Diner classics made fresh. All sandwiches served with pickle spear and chips unless upgraded to fries.",
+      "items": [
+        {
+          "name": "BLT",
+          "description": "Crispy bacon, fresh lettuce, and ripe tomato on toasted white bread with mayo.",
+          "price": "$6.49",
+          "tags": []
+        },
+        {
+          "name": "Grilled Cheese",
+          "description": "Melted American cheese on buttery grilled white bread. Simple and perfect.",
+          "price": "$4.99",
+          "tags": ["V"]
+        },
+        {
+          "name": "Club Sandwich",
+          "description": "Triple-decker with turkey, bacon, lettuce, tomato, and mayo on toasted bread.",
+          "price": "$8.49",
+          "tags": []
+        },
+        {
+          "name": "Tuna Melt",
+          "description": "Homemade tuna salad with melted cheddar on grilled rye bread.",
+          "price": "$7.49",
+          "tags": []
+        },
+        {
+          "name": "Philly Cheesesteak",
+          "description": "Thinly sliced steak with sauteed peppers, onions, and melted provolone on a hoagie roll.",
+          "price": "$8.99",
+          "tags": []
+        },
+        {
+          "name": "Grilled Chicken Sandwich",
+          "description": "Seasoned grilled chicken breast with lettuce, tomato, and honey mustard on a brioche bun.",
+          "price": "$7.99",
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "Breakfast",
+      "description": "Served all day — because the best breakfasts don't watch the clock. Eggs cooked to order.",
+      "items": [
+        {
+          "name": "Two Eggs Any Style",
+          "description": "Two eggs cooked your way with hash browns, toast, and your choice of bacon or sausage.",
+          "price": "$6.99",
+          "tags": ["GF"]
+        },
+        {
+          "name": "Western Omelette",
+          "description": "Three-egg omelette stuffed with ham, peppers, onions, and cheddar. Served with hash browns and toast.",
+          "price": "$8.99",
+          "tags": ["GF"]
+        },
+        {
+          "name": "Cheese Omelette",
+          "description": "Three-egg omelette with melted cheddar and American cheese. Served with hash browns and toast.",
+          "price": "$7.99",
+          "tags": ["V", "GF"]
+        },
+        {
+          "name": "Veggie Omelette",
+          "description": "Three-egg omelette with mushrooms, peppers, onions, tomato, and cheddar. Served with hash browns and toast.",
+          "price": "$8.49",
+          "tags": ["V", "GF"]
+        },
+        {
+          "name": "Short Stack Pancakes",
+          "description": "Three fluffy buttermilk pancakes with butter and warm maple syrup.",
+          "price": "$5.99",
+          "tags": ["V"]
+        },
+        {
+          "name": "French Toast",
+          "description": "Thick-cut bread dipped in cinnamon egg batter, griddled golden. Served with butter and syrup.",
+          "price": "$6.49",
+          "tags": ["V"]
+        },
+        {
+          "name": "Breakfast Burrito",
+          "description": "Scrambled eggs, sausage, cheddar, peppers, and onions wrapped in a warm flour tortilla. Served with salsa.",
+          "price": "$7.99",
+          "tags": []
+        },
+        {
+          "name": "Biscuits & Gravy",
+          "description": "Two fluffy buttermilk biscuits smothered in our homemade sausage gravy.",
+          "price": "$6.49",
+          "tags": []
+        }
+      ]
+    },
+    {
+      "name": "Sides",
+      "description": "The perfect sidekick to any meal.",
+      "items": [
+        {
+          "name": "French Fries",
+          "description": "Crispy golden fries seasoned with salt.",
+          "price": "$2.99",
+          "tags": ["V", "GF"]
+        },
+        {
+          "name": "Onion Rings",
+          "description": "Beer-battered onion rings fried until golden and crunchy.",
+          "price": "$3.99",
+          "tags": ["V"]
+        },
+        {
+          "name": "Chili Cheese Fries",
+          "description": "Crispy fries loaded with our homemade chili and melted cheddar cheese.",
+          "price": "$4.99",
+          "tags": []
+        },
+        {
+          "name": "Cole Slaw",
+          "description": "Creamy homemade coleslaw — cool and tangy.",
+          "price": "$2.49",
+          "tags": ["V", "GF"]
+        },
+        {
+          "name": "Side Salad",
+          "description": "Mixed greens with tomato, cucumber, and croutons. Choice of dressing.",
+          "price": "$3.49",
+          "tags": ["V"]
+        },
+        {
+          "name": "Cup of Chili",
+          "description": "A hearty cup of our homemade beef chili topped with cheddar and onions.",
+          "price": "$3.99",
+          "tags": ["GF"]
+        }
+      ]
+    },
+    {
+      "name": "Beverages",
+      "description": "Hot, cold, and everything in between.",
+      "items": [
+        {
+          "name": "Coffee",
+          "description": "Fresh-brewed house coffee. Free refills.",
+          "price": "$1.99",
+          "tags": ["V", "GF"]
+        },
+        {
+          "name": "Soft Drinks",
+          "description": "Coca-Cola, Diet Coke, Sprite, Dr Pepper, Lemonade. Free refills.",
+          "price": "$2.49",
+          "tags": ["V", "GF"]
+        },
+        {
+          "name": "Milkshake",
+          "description": "Thick hand-spun milkshake — chocolate, vanilla, or strawberry.",
+          "price": "$4.99",
+          "tags": ["V"]
+        },
+        {
+          "name": "Orange Juice",
+          "description": "Fresh-squeezed orange juice.",
+          "price": "$2.99",
+          "tags": ["V", "GF"]
+        },
+        {
+          "name": "Hot Chocolate",
+          "description": "Rich hot cocoa topped with whipped cream.",
+          "price": "$2.49",
+          "tags": ["V"]
+        },
+        {
+          "name": "Iced Tea",
+          "description": "Freshly brewed iced tea — sweetened or unsweetened.",
+          "price": "$2.49",
+          "tags": ["V", "GF"]
+        }
+      ]
+    }
+  ]
+}
