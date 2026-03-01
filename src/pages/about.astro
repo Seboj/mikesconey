@@ -1,0 +1,31 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site";
+---
+
+<BaseLayout title="About">
+  <section class="px-4 md:px-8 lg:px-16 py-16">
+    <div class="mx-auto max-w-3xl">
+      <h1 class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading text-center mb-4">
+        About Us
+      </h1>
+      <p class="text-center text-brand-text-muted mb-12">
+        {site.since} &middot; Holly, Michigan
+      </p>
+
+      <div class="prose prose-slate max-w-none text-brand-text-body">
+        <p class="text-lg leading-relaxed">
+          {site.name} has been serving classic Michigan coney island fare to the Holly community
+          and beyond. From our famous coney dogs smothered in homemade chili sauce to our all-day
+          breakfast, every dish is made with the same care and quality that has kept families
+          coming back for generations.
+        </p>
+        <p class="text-lg leading-relaxed mt-4">
+          Step inside and you'll find a warm, bustling diner where everyone is welcome. Whether
+          you're grabbing a quick lunch or sitting down for a family breakfast, we're here to
+          make your day a little better — one coney at a time.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

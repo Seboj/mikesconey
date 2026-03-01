@@ -1,13 +1,34 @@
 ---
-// Placeholder — will be replaced in Plan 03
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site";
 ---
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mike's Coney Island</title>
-  </head>
-  <body>
-    <h1>Mike's Coney Island</h1>
-  </body>
-</html>
+
+<BaseLayout title="Home">
+  <section class="px-4 md:px-8 lg:px-16 py-16 md:py-24">
+    <div class="mx-auto max-w-3xl text-center">
+      <p class="text-brand-secondary font-medium text-sm tracking-wider uppercase mb-4">
+        {site.since}
+      </p>
+      <h1 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-brand-text-heading mb-6">
+        {site.name}
+      </h1>
+      <p class="text-lg md:text-xl text-brand-text-body mb-8">
+        {site.tagline}
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a
+          href="/menu/"
+          class="inline-block px-6 py-3 bg-brand-primary text-brand-text-light font-medium rounded hover:bg-brand-primary-light transition-colors"
+        >
+          View Our Menu
+        </a>
+        <a
+          href={site.phone.tel}
+          class="inline-block px-6 py-3 border-2 border-brand-primary text-brand-primary font-medium rounded hover:bg-brand-primary hover:text-brand-text-light transition-colors"
+        >
+          Call {site.phone.display}
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -20,6 +20,10 @@
   --color-brand-divider: #E2E8F0;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   font-family: var(--font-body);
   color: var(--color-brand-text-body);

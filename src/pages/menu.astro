@@ -1,0 +1,24 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import menuData from "../data/menu.json";
+---
+
+<BaseLayout title="Menu">
+  <section class="px-4 md:px-8 lg:px-16 py-16">
+    <div class="mx-auto max-w-4xl">
+      <h1 class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading text-center mb-4">
+        Our Menu
+      </h1>
+      <p class="text-center text-brand-text-muted mb-12">
+        {menuData.categories.length} categories of delicious food — classic Michigan coney island fare
+      </p>
+
+      <div class="bg-brand-accent/50 rounded-lg p-8 text-center">
+        <p class="text-brand-text-body text-lg">
+          Full menu coming soon — browse our {menuData.categories.length} categories
+          with {menuData.categories.reduce((s: number, c: { items: unknown[] }) => s + c.items.length, 0)} items.
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
