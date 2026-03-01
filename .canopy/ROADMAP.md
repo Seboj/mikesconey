@@ -11,7 +11,7 @@
 
 - [x] **Phase 1: Foundation** - Scaffold the project, establish data layer, deploy skeleton to Cloudflare Pages (completed 2026-03-01)
 - [x] **Phase 2: Homepage** - Build the public face of the restaurant — hero, hours, call to action (completed 2026-03-01)
-- [ ] **Phase 3: Menu** - Deliver the site's most important feature as a full HTML menu
+- [x] **Phase 3: Menu** - Deliver the site's most important feature as a full HTML menu (completed 2026-03-01)
 - [ ] **Phase 4: Gallery and About** - Owner-asset-dependent pages: photo gallery and brand story
 - [ ] **Phase 5: Contact and FAQ** - Location page with map and FAQ section targeting common visitor queries
 - [ ] **Phase 6: SEO and Launch** - Validate structured data, audit performance, confirm site is launch-ready
@@ -96,7 +96,7 @@
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/? | Complete    | 2026-03-01 |
 | 2. Homepage | 3/3 | Complete    | 2026-03-01 |
-| 3. Menu | 0/? | Not started | - |
+| 3. Menu | 0/? | Complete    | 2026-03-01 |
 | 4. Gallery and About | 0/? | Not started | - |
 | 5. Contact and FAQ | 0/? | Not started | - |
 | 6. SEO and Launch | 0/? | Not started | - |
