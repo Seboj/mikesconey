@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Outfit Variable", sans-serif;
+  --font-body: "Inter Variable", sans-serif;
+
+  --color-brand-primary: #B91C1C;
+  --color-brand-primary-light: #DC2626;
+  --color-brand-primary-dark: #991B1B;
+  --color-brand-secondary: #CA8A04;
+  --color-brand-secondary-light: #EAB308;
+  --color-brand-dark: #1E293B;
+  --color-brand-dark-deeper: #0F172A;
+  --color-brand-light: #FFFBEB;
+  --color-brand-accent: #FEF3C7;
+  --color-brand-text-heading: #0F172A;
+  --color-brand-text-body: #334155;
+  --color-brand-text-muted: #64748B;
+  --color-brand-text-light: #F8FAFC;
+  --color-brand-divider: #E2E8F0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-brand-text-body);
+  background-color: var(--color-brand-light);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-brand-text-heading);
+}
