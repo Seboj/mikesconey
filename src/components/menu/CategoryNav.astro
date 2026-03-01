@@ -1,0 +1,41 @@
+---
+interface Props {
+  categories: Array<{ name: string }>;
+}
+
+const { categories } = Astro.props;
+
+function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+---
+
+<nav
+  class="sticky top-[68px] z-40 bg-brand-light/95 backdrop-blur-sm border-b border-brand-divider"
+  aria-label="Menu categories"
+>
+  <div class="mx-auto max-w-4xl px-4 md:px-8">
+    <div class="category-scroll flex gap-1 overflow-x-auto py-3">
+      {categories.map((cat) => (
+        <a
+          href={`#${slugify(cat.name)}`}
+          data-category-link
+          class="flex-shrink-0 px-3 py-1.5 text-sm font-medium rounded-full text-brand-text-muted hover:text-brand-primary hover:bg-brand-accent transition-colors whitespace-nowrap"
+        >
+          {cat.name}
+        </a>
+      ))}
+    </div>
+  </div>
+</nav>
+
+<style>
+  .category-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .category-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
