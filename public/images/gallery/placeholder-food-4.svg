@@ -1,0 +1,14 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#FEF3C7" rx="8"/>
+  <rect x="0" y="0" width="400" height="300" fill="#CA8A04" fill-opacity="0.09" rx="8"/>
+  <!-- Bowl/salad icon -->
+  <g transform="translate(168, 95)" stroke="#B91C1C" stroke-opacity="0.3" stroke-width="2" fill="none">
+    <path d="M0 18h64"/>
+    <path d="M4 18c2 16 12 24 28 24s26-8 28-24"/>
+    <path d="M20 10c4-6 8-8 12-8"/>
+    <path d="M28 12c2-4 6-8 10-8"/>
+    <circle cx="24" cy="14" r="3"/>
+  </g>
+  <text x="200" y="230" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#B91C1C" fill-opacity="0.5">Photo coming soon</text>
+  <circle cx="350" cy="40" r="3.5" fill="#CA8A04" fill-opacity="0.11"/>
+</svg>

@@ -1,39 +1,27 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import GalleryGrid from "../components/gallery/GalleryGrid.astro";
 ---
 
-<BaseLayout title="Gallery">
-  <section class="px-4 md:px-8 lg:px-16 py-16">
-    <div class="mx-auto max-w-4xl">
-      <h1 class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading text-center mb-4">
-        Gallery
-      </h1>
-      <p class="text-center text-brand-text-muted mb-12">
-        Photos coming soon
-      </p>
-
-      <!-- Placeholder grid with branded SVG rectangles -->
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {
-          Array.from({ length: 6 }).map((_, i) => (
-            <div class="aspect-[4/3] bg-brand-accent border-2 border-brand-primary/20 rounded-lg flex items-center justify-center">
-              <svg
-                class="w-12 h-12 text-brand-primary/30"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21z"
-                />
-              </svg>
-            </div>
-          ))
-        }
+<BaseLayout title="Gallery" description="Take a peek inside Mike's Coney Island — food, atmosphere, and the people who make it special.">
+  <section class="py-16 md:py-20 px-4 md:px-8">
+    <div class="mx-auto max-w-6xl">
+      <!-- Section header -->
+      <div class="text-center mb-12">
+        <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
+        <h1 class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading mb-3">
+          Gallery
+        </h1>
+        <p class="text-brand-text-muted text-lg">
+          A peek inside Mike's Coney Island
+        </p>
       </div>
+
+      <GalleryGrid />
+
+      <p class="text-center text-brand-text-muted text-sm mt-12">
+        Real photos coming soon! Stay tuned.
+      </p>
     </div>
   </section>
 </BaseLayout>

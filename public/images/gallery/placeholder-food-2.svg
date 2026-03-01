@@ -1,0 +1,14 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="#FEF3C7" rx="8"/>
+  <rect x="0" y="0" width="400" height="300" fill="#CA8A04" fill-opacity="0.06" rx="8"/>
+  <!-- Plate icon -->
+  <g transform="translate(165, 90)" stroke="#B91C1C" stroke-opacity="0.3" stroke-width="2" fill="none">
+    <ellipse cx="35" cy="20" rx="30" ry="12"/>
+    <path d="M5 20v5c0 8 13 14 30 14s30-6 30-14v-5"/>
+    <line x1="25" y1="10" x2="25" y2="2"/>
+    <line x1="35" y1="8" x2="35" y2="0"/>
+    <line x1="45" y1="10" x2="45" y2="2"/>
+  </g>
+  <text x="200" y="230" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#B91C1C" fill-opacity="0.5">Photo coming soon</text>
+  <circle cx="340" cy="250" r="4" fill="#CA8A04" fill-opacity="0.1"/>
+</svg>
