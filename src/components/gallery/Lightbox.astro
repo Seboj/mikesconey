@@ -1,0 +1,203 @@
+<!-- Lightbox overlay — hidden by default, activated by gallery item clicks -->
+<div
+  id="lightbox"
+  class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-200"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Image viewer"
+>
+  <!-- Backdrop -->
+  <div id="lightbox-backdrop" class="absolute inset-0 bg-black/90"></div>
+
+  <!-- Content wrapper -->
+  <div class="relative z-10 flex flex-col items-center justify-center h-full p-4 md:p-8">
+    <!-- Close button -->
+    <button
+      id="lightbox-close"
+      type="button"
+      class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-20"
+      aria-label="Close image viewer"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Previous button -->
+    <button
+      id="lightbox-prev"
+      type="button"
+      class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-20"
+      aria-label="Previous image"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+
+    <!-- Next button -->
+    <button
+      id="lightbox-next"
+      type="button"
+      class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-20"
+      aria-label="Next image"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <!-- Image display -->
+    <img
+      id="lightbox-img"
+      src=""
+      alt=""
+      class="max-h-[80vh] max-w-[90vw] object-contain rounded-lg"
+    />
+
+    <!-- Caption -->
+    <p id="lightbox-caption" class="text-white/80 text-sm mt-4 text-center max-w-lg"></p>
+
+    <!-- Counter -->
+    <p id="lightbox-counter" class="text-white/50 text-xs mt-2"></p>
+  </div>
+</div>
+
+<script>
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img") as HTMLImageElement;
+  const lightboxCaption = document.getElementById("lightbox-caption");
+  const lightboxCounter = document.getElementById("lightbox-counter");
+  const closeBtn = document.getElementById("lightbox-close");
+  const prevBtn = document.getElementById("lightbox-prev");
+  const nextBtn = document.getElementById("lightbox-next");
+  const backdrop = document.getElementById("lightbox-backdrop");
+  const items = document.querySelectorAll("[data-gallery-item]");
+
+  let currentIndex = 0;
+  let triggerElement: HTMLElement | null = null;
+
+  // Focusable elements inside lightbox for focus trap
+  const focusableElements = [closeBtn, prevBtn, nextBtn].filter(Boolean) as HTMLElement[];
+
+  function openLightbox(index: number) {
+    if (!lightbox || !lightboxImg || !lightboxCaption || !lightboxCounter) return;
+
+    currentIndex = index;
+    const item = items[index] as HTMLElement;
+    triggerElement = item;
+
+    lightboxImg.src = item.dataset.src || "";
+    lightboxImg.alt = item.dataset.alt || "";
+
+    const caption = item.dataset.caption || "";
+    lightboxCaption.textContent = caption;
+    lightboxCaption.style.display = caption ? "block" : "none";
+
+    lightboxCounter.textContent = `${index + 1} of ${items.length}`;
+
+    // Show lightbox with fade-in
+    lightbox.classList.remove("hidden");
+    requestAnimationFrame(() => {
+      lightbox.classList.remove("opacity-0");
+      lightbox.classList.add("opacity-100");
+    });
+
+    document.body.style.overflow = "hidden";
+    closeBtn?.focus();
+  }
+
+  function closeLightbox() {
+    if (!lightbox) return;
+
+    lightbox.classList.remove("opacity-100");
+    lightbox.classList.add("opacity-0");
+
+    setTimeout(() => {
+      lightbox.classList.add("hidden");
+      document.body.style.overflow = "";
+
+      // Return focus to the triggering gallery item
+      if (triggerElement) {
+        triggerElement.focus();
+        triggerElement = null;
+      }
+    }, 200);
+  }
+
+  function navigate(direction: number) {
+    const newIndex = (currentIndex + direction + items.length) % items.length;
+    openLightbox(newIndex);
+  }
+
+  // Click handlers for gallery items
+  items.forEach((item, index) => {
+    item.addEventListener("click", () => openLightbox(index));
+  });
+
+  // Close handlers
+  closeBtn?.addEventListener("click", closeLightbox);
+  backdrop?.addEventListener("click", closeLightbox);
+
+  // Navigation handlers
+  prevBtn?.addEventListener("click", () => navigate(-1));
+  nextBtn?.addEventListener("click", () => navigate(1));
+
+  // Keyboard navigation
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (!lightbox || lightbox.classList.contains("hidden")) return;
+
+    switch (e.key) {
+      case "Escape":
+        closeLightbox();
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        navigate(-1);
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        navigate(1);
+        break;
+      case "Tab":
+        // Focus trap
+        e.preventDefault();
+        const currentFocus = document.activeElement;
+        const currentIdx = focusableElements.indexOf(currentFocus as HTMLElement);
+
+        if (e.shiftKey) {
+          // Shift+Tab: go backward
+          const prevIdx = currentIdx <= 0 ? focusableElements.length - 1 : currentIdx - 1;
+          focusableElements[prevIdx]?.focus();
+        } else {
+          // Tab: go forward
+          const nextIdx = currentIdx >= focusableElements.length - 1 ? 0 : currentIdx + 1;
+          focusableElements[nextIdx]?.focus();
+        }
+        break;
+    }
+  });
+
+  // Touch/swipe support
+  let pointerStartX = 0;
+  let pointerStartY = 0;
+
+  lightbox?.addEventListener("pointerdown", (e: PointerEvent) => {
+    pointerStartX = e.clientX;
+    pointerStartY = e.clientY;
+  });
+
+  lightbox?.addEventListener("pointerup", (e: PointerEvent) => {
+    const dx = e.clientX - pointerStartX;
+    const dy = e.clientY - pointerStartY;
+
+    // Only trigger if horizontal swipe > 50px and more horizontal than vertical
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 0) {
+        navigate(-1); // Swipe right = previous
+      } else {
+        navigate(1); // Swipe left = next
+      }
+    }
+  });
+</script>
