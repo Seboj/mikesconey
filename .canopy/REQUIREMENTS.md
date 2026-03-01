@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FOUN-01**: Site scaffolded with Astro 5 + Tailwind CSS 4 and deployed to Cloudflare Pages
-- [ ] **FOUN-02**: All restaurant facts (name, address, phone, hours) stored in a single typed data file (site.ts) used across all pages
-- [ ] **FOUN-03**: Menu content stored as structured JSON data (menu.json), not hardcoded in templates
-- [ ] **FOUN-04**: Base layout with consistent navigation and footer across all pages
+- [x] **FOUN-01**: Site scaffolded with Astro 5 + Tailwind CSS 4 and deployed to Cloudflare Pages
+- [x] **FOUN-02**: All restaurant facts (name, address, phone, hours) stored in a single typed data file (site.ts) used across all pages
+- [x] **FOUN-03**: Menu content stored as structured JSON data (menu.json), not hardcoded in templates
+- [x] **FOUN-04**: Base layout with consistent navigation and footer across all pages
 
 ### Homepage
 
@@ -61,9 +61,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Design
 
-- [ ] **DSGN-01**: Mobile-responsive design that works on all screen sizes (375px and up)
+- [x] **DSGN-01**: Mobile-responsive design that works on all screen sizes (375px and up)
 - [ ] **DSGN-02**: Visually striking design that stands out from generic Michigan coney island competitor sites
-- [ ] **DSGN-03**: Self-hosted fonts (via Fontsource) for consistent typography without third-party DNS lookups
+- [x] **DSGN-03**: Self-hosted fonts (via Fontsource) for consistent typography without third-party DNS lookups
 - [ ] **DSGN-04**: Fast page loads — all pages under 2 seconds on mobile
 
 ## v2 Requirements
@@ -103,12 +103,12 @@ Which phases cover which requirements. Finalized during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUN-01 | Phase 1 | Pending |
-| FOUN-02 | Phase 1 | Pending |
-| FOUN-03 | Phase 1 | Pending |
-| FOUN-04 | Phase 1 | Pending |
-| DSGN-01 | Phase 1 | Pending |
-| DSGN-03 | Phase 1 | Pending |
+| FOUN-01 | Phase 1 | Complete |
+| FOUN-02 | Phase 1 | Complete |
+| FOUN-03 | Phase 1 | Complete |
+| FOUN-04 | Phase 1 | Complete |
+| DSGN-01 | Phase 1 | Complete |
+| DSGN-03 | Phase 1 | Complete |
 | HOME-01 | Phase 2 | Pending |
 | HOME-02 | Phase 2 | Pending |
 | HOME-03 | Phase 2 | Pending |
