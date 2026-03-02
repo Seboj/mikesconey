@@ -1,52 +1,49 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import FaqAccordion from "../components/FaqAccordion.astro";
 import { site } from "../data/site";
 ---
 
 <BaseLayout title="Contact">
-  <section class="px-4 md:px-8 lg:px-16 py-16">
-    <div class="mx-auto max-w-3xl">
-      <h1 class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading text-center mb-4">
-        Contact Us
+  <!-- Page Header -->
+  <section class="bg-brand-accent/30 py-12 md:py-16 px-4 md:px-8">
+    <div class="max-w-4xl mx-auto text-center">
+      <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
+      <h1
+        class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading mb-3"
+      >
+        Find Us
       </h1>
-      <p class="text-center text-brand-text-muted mb-12">
-        We'd love to hear from you
+      <p class="text-brand-text-muted text-lg">
+        Stop by for a classic coney, a hearty breakfast, or your favorite
+        comfort food.
       </p>
+    </div>
+  </section>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Address and phone -->
-        <div class="bg-brand-accent/50 rounded-lg p-6">
-          <h2 class="font-heading text-xl font-bold text-brand-text-heading mb-4">
-            Visit Us
-          </h2>
-          <address class="not-italic text-brand-text-body space-y-2">
-            <p>{site.address.street}</p>
-            <p>{site.address.city}, {site.address.state} {site.address.zip}</p>
-          </address>
-
-          <div class="mt-4">
-            <a
-              href={site.phone.tel}
-              class="inline-flex items-center gap-2 text-brand-primary hover:text-brand-primary-light font-medium transition-colors"
+  <!-- Contact Info + Map -->
+  <section class="px-4 md:px-8 lg:px-16 py-12 md:py-16">
+    <div class="mx-auto max-w-5xl">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        <!-- Left Column: Contact Details -->
+        <div class="space-y-6">
+          <!-- Visit Us Card -->
+          <div
+            class="bg-white rounded-xl shadow-sm border border-brand-divider p-6"
+          >
+            <h2
+              class="font-heading text-xl font-bold text-brand-text-heading mb-4"
             >
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                ></path>
-              </svg>
-              {site.phone.display}
-            </a>
-          </div>
+              Visit Us
+            </h2>
+            <address class="not-italic text-brand-text-body space-y-1 mb-4">
+              <p>{site.address.street}</p>
+              <p>
+                {site.address.city}, {site.address.state}{" "}
+                {site.address.zip}
+              </p>
+            </address>
 
-          <div class="mt-4">
             <a
               href={site.maps.directionsUrl}
               target="_blank"
@@ -63,8 +60,7 @@ import { site } from "../data/site";
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
-                ></path>
+                  d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -73,33 +69,120 @@ import { site } from "../data/site";
               </svg>
               Get Directions
             </a>
+
+            <div class="mt-4">
+              <a
+                href={site.phone.tel}
+                class="inline-flex items-center gap-2 text-brand-primary hover:text-brand-primary-light font-medium text-lg transition-colors"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                  ></path>
+                </svg>
+                {site.phone.display}
+              </a>
+            </div>
+          </div>
+
+          <!-- Hours Card -->
+          <div
+            class="bg-white rounded-xl shadow-sm border border-brand-divider p-6"
+          >
+            <h2
+              class="font-heading text-xl font-bold text-brand-text-heading mb-4"
+            >
+              Hours
+            </h2>
+            {
+              site.hours.map((h) => (
+                <div
+                  class="contact-hours-row flex justify-between items-center py-2 border-b border-brand-divider/30 last:border-b-0"
+                  data-day={h.day}
+                >
+                  <span class="contact-hours-day font-medium text-brand-text-body">
+                    {h.day}
+                  </span>
+                  {h.closed ? (
+                    <span class="contact-hours-time text-brand-primary font-medium">
+                      Closed
+                    </span>
+                  ) : (
+                    <span class="contact-hours-time text-brand-text-muted">
+                      {h.open} &ndash; {h.close}
+                    </span>
+                  )}
+                </div>
+              ))
+            }
+            <p class="text-sm text-brand-text-muted mt-3">
+              Hours may vary on holidays. Call to confirm.
+            </p>
           </div>
         </div>
 
-        <!-- Hours -->
-        <div class="bg-brand-accent/50 rounded-lg p-6">
-          <h2 class="font-heading text-xl font-bold text-brand-text-heading mb-4">
-            Hours
-          </h2>
-          <ul class="text-brand-text-body space-y-2">
-            {
-              site.hours.map((h) => (
-                <li class="flex justify-between">
-                  <span class="font-medium">{h.day}</span>
-                  <span class="text-brand-text-muted">
-                    {h.closed ? "Closed" : `${h.open} – ${h.close}`}
-                  </span>
-                </li>
-              ))
-            }
-          </ul>
+        <!-- Right Column: Google Map -->
+        <div
+          class="rounded-xl overflow-hidden shadow-sm border border-brand-divider h-full min-h-[350px] md:min-h-[450px]"
+        >
+          <iframe
+            src={site.maps.embedUrl}
+            width="100%"
+            height="100%"
+            style="border:0; min-height: 350px;"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Mike's Coney Island location on Google Maps"></iframe>
         </div>
-      </div>
-
-      <!-- Map placeholder -->
-      <div class="mt-8 bg-brand-accent/30 border-2 border-brand-divider rounded-lg p-8 text-center">
-        <p class="text-brand-text-muted">Map coming soon</p>
       </div>
     </div>
   </section>
+
+  <!-- FAQ Section -->
+  <section class="px-4 md:px-8 lg:px-16 py-12 md:py-16 bg-brand-accent/10">
+    <div class="mx-auto max-w-3xl">
+      <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
+      <h2
+        class="font-heading text-2xl md:text-3xl font-bold text-brand-text-heading text-center mb-8"
+      >
+        Frequently Asked Questions
+      </h2>
+      <FaqAccordion />
+    </div>
+  </section>
 </BaseLayout>
+
+<script>
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  const today = days[new Date().getDay()];
+  document.querySelectorAll(".contact-hours-row").forEach((row) => {
+    if (row instanceof HTMLElement && row.dataset.day === today) {
+      row.classList.add("bg-brand-accent/50", "rounded-lg", "px-3", "-mx-3");
+      const daySpan = row.querySelector(".contact-hours-day");
+      if (daySpan) {
+        daySpan.classList.add("text-brand-primary", "font-bold");
+      }
+      const timeSpan = row.querySelector(".contact-hours-time");
+      if (timeSpan) {
+        timeSpan.classList.add("text-brand-primary", "font-semibold");
+      }
+    }
+  });
+</script>
