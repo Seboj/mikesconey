@@ -1,0 +1,63 @@
+---
+import type { FaqContent } from "../../../shared/types";
+
+interface Props {
+  faqItems: FaqContent;
+}
+
+const { faqItems } = Astro.props;
+---
+
+<div class="space-y-3">
+  {
+    faqItems.map((item, index) => (
+      <div class="bg-white rounded-lg border border-brand-divider overflow-hidden">
+        <button
+          class="faq-toggle w-full text-left px-6 py-4 flex items-center justify-between gap-4 font-medium text-brand-text-heading hover:bg-brand-accent/30 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:ring-inset"
+          aria-expanded="false"
+          aria-controls={`faq-panel-${index}`}
+        >
+          <span>{item.question}</span>
+          <svg
+            class="faq-icon w-5 h-5 shrink-0 text-brand-primary transition-transform duration-200"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+        <div
+          id={`faq-panel-${index}`}
+          class="faq-panel px-6 pb-4 text-brand-text-body leading-relaxed"
+          hidden
+        >
+          <p>{item.answer}</p>
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  document.querySelectorAll(".faq-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const isExpanded = btn.getAttribute("aria-expanded") === "true";
+      btn.setAttribute("aria-expanded", String(!isExpanded));
+      const panelId = btn.getAttribute("aria-controls");
+      const panel = panelId ? document.getElementById(panelId) : null;
+      if (panel) {
+        panel.hidden = isExpanded;
+      }
+      const icon = btn.querySelector(".faq-icon");
+      if (icon instanceof HTMLElement) {
+        icon.style.transform = isExpanded ? "" : "rotate(180deg)";
+      }
+    });
+  });
+</script>

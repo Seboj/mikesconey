@@ -1,0 +1,39 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GalleryGrid from "../components/gallery/GalleryGrid.astro";
+import Lightbox from "../components/gallery/Lightbox.astro";
+import { fetchContent } from "../lib/api";
+import type { SiteInfoContent, HoursContent, GalleryContent } from "../../../shared/types";
+
+const [siteInfo, hours, images] = await Promise.all([
+  fetchContent<SiteInfoContent>("site_info"),
+  fetchContent<HoursContent>("hours"),
+  fetchContent<GalleryContent>("gallery"),
+]);
+---
+
+<BaseLayout title="Gallery" description="Take a peek inside Mike's Coney Island — food, atmosphere, and the people who make it special." siteInfo={siteInfo} hours={hours}>
+  <section class="py-16 md:py-20 px-4 md:px-8">
+    <div class="mx-auto max-w-6xl">
+      <!-- Section header -->
+      <div class="text-center mb-12">
+        <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
+        <h1 class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading mb-3">
+          Gallery
+        </h1>
+        <p class="text-brand-text-muted text-lg">
+          A peek inside Mike's Coney Island
+        </p>
+      </div>
+
+      <GalleryGrid images={images} />
+
+      <p class="text-center text-brand-text-muted text-sm mt-12">
+        Real photos coming soon! Stay tuned.
+      </p>
+    </div>
+  </section>
+  <Lightbox />
+</BaseLayout>

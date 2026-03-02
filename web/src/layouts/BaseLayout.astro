@@ -1,0 +1,31 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Nav from "../components/Nav.astro";
+import SignupBanner from "../components/SignupBanner.astro";
+import Footer from "../components/Footer.astro";
+import type { SiteInfoContent, HoursContent } from "../../../shared/types";
+
+interface Props {
+  title?: string;
+  description?: string;
+  siteInfo: SiteInfoContent;
+  hours: HoursContent;
+}
+
+const { title, description, siteInfo, hours } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={description} siteInfo={siteInfo} hours={hours} />
+  </head>
+  <body class="min-h-screen flex flex-col bg-brand-light">
+    <Nav site={siteInfo} />
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+    <SignupBanner />
+    <Footer site={siteInfo} hours={hours} />
+  </body>
+</html>

@@ -1,0 +1,458 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+
+const apiUrl = import.meta.env.DEV
+  ? (process.env.API_URL || "http://localhost:3000")
+  : "http://api:3000";
+
+const cookie = Astro.request.headers.get("cookie") || "";
+const res = await fetch(`${apiUrl}/api/admin/content/menu`, { headers: { cookie } });
+const menuData = res.ok ? await res.json() : { categories: [] };
+---
+
+<AdminLayout title="Menu" activePage="menu">
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Menu</h1>
+      <p class="text-sm text-brand-text-muted mt-1">Manage your restaurant menu categories and items.</p>
+    </div>
+    <div class="flex gap-3">
+      <button
+        id="add-category-btn"
+        class="px-4 py-2.5 bg-white text-brand-text-body text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors inline-flex items-center gap-2"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Category
+      </button>
+      <button
+        id="save-btn"
+        class="px-4 py-2.5 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark transition-colors inline-flex items-center gap-2"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+        Save Changes
+      </button>
+    </div>
+  </div>
+
+  <!-- Menu editor container -->
+  <div id="menu-editor">
+    <!-- Categories rendered by JS -->
+  </div>
+
+  <!-- Empty state (shown when no categories) -->
+  <div id="empty-state" class="hidden bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-12 text-center">
+    <svg class="w-12 h-12 text-brand-text-muted/40 mx-auto mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+    <p class="text-brand-text-muted mb-2">No menu categories yet.</p>
+    <p class="text-sm text-brand-text-muted/70">Click "Add Category" to get started.</p>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium transition-all duration-300 transform translate-y-2 opacity-0">
+  </div>
+
+  <!-- Serialize initial data -->
+  <script type="application/json" id="menu-data" set:html={JSON.stringify(menuData)}></script>
+</AdminLayout>
+
+<script>
+  // ---- State ----
+  interface MenuItem {
+    name: string;
+    description: string;
+    price: string;
+    tags: string[];
+  }
+  interface MenuCategory {
+    name: string;
+    description: string;
+    items: MenuItem[];
+  }
+  interface MenuContent {
+    categories: MenuCategory[];
+  }
+
+  const raw = document.getElementById("menu-data")?.textContent || '{"categories":[]}';
+  const state: MenuContent = JSON.parse(raw);
+
+  // Track which categories are collapsed (by index)
+  const collapsed: Set<number> = new Set();
+
+  // ---- DOM references ----
+  const editor = document.getElementById("menu-editor")!;
+  const emptyState = document.getElementById("empty-state")!;
+  const addCategoryBtn = document.getElementById("add-category-btn")!;
+  const saveBtn = document.getElementById("save-btn")!;
+  const toast = document.getElementById("toast")!;
+
+  // ---- Render ----
+  function render() {
+    if (state.categories.length === 0) {
+      editor.classList.add("hidden");
+      emptyState.classList.remove("hidden");
+    } else {
+      editor.classList.remove("hidden");
+      emptyState.classList.add("hidden");
+    }
+
+    editor.innerHTML = "";
+
+    state.categories.forEach((cat, ci) => {
+      const isCollapsed = collapsed.has(ci);
+
+      const card = document.createElement("div");
+      card.className = "bg-white rounded-xl shadow-sm border border-gray-100 mb-4";
+
+      // ---- Category header ----
+      const header = document.createElement("div");
+      header.className = "border-b border-gray-100 px-6 py-4";
+
+      // Top row: toggle + controls
+      const topRow = document.createElement("div");
+      topRow.className = "flex items-center justify-between mb-3";
+
+      const toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "flex items-center gap-2 text-sm font-medium text-brand-text-muted hover:text-brand-text-heading transition-colors";
+      toggleBtn.innerHTML = `
+        <svg class="w-4 h-4 transition-transform ${isCollapsed ? "" : "rotate-90"}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+        <span>${cat.items.length} item${cat.items.length !== 1 ? "s" : ""}</span>
+      `;
+      toggleBtn.addEventListener("click", () => {
+        if (collapsed.has(ci)) {
+          collapsed.delete(ci);
+        } else {
+          collapsed.add(ci);
+        }
+        render();
+      });
+
+      const controls = document.createElement("div");
+      controls.className = "flex items-center gap-1";
+
+      // Move up
+      if (ci > 0) {
+        const upBtn = createIconButton(
+          "Move Up",
+          `<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />`,
+          () => { swap(state.categories, ci, ci - 1); syncCollapsed(ci, ci - 1); render(); }
+        );
+        controls.appendChild(upBtn);
+      }
+
+      // Move down
+      if (ci < state.categories.length - 1) {
+        const downBtn = createIconButton(
+          "Move Down",
+          `<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />`,
+          () => { swap(state.categories, ci, ci + 1); syncCollapsed(ci, ci + 1); render(); }
+        );
+        controls.appendChild(downBtn);
+      }
+
+      // Remove category
+      const removeBtn = createIconButton(
+        "Remove Category",
+        `<path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />`,
+        () => {
+          if (confirm(`Remove category "${cat.name || "Untitled"}" and all its items?`)) {
+            state.categories.splice(ci, 1);
+            collapsed.delete(ci);
+            // Shift collapsed indices
+            const newCollapsed = new Set<number>();
+            collapsed.forEach((idx) => {
+              if (idx > ci) newCollapsed.add(idx - 1);
+              else newCollapsed.add(idx);
+            });
+            collapsed.clear();
+            newCollapsed.forEach((idx) => collapsed.add(idx));
+            render();
+          }
+        },
+        true
+      );
+      controls.appendChild(removeBtn);
+
+      topRow.appendChild(toggleBtn);
+      topRow.appendChild(controls);
+      header.appendChild(topRow);
+
+      // Category fields
+      const fieldsRow = document.createElement("div");
+      fieldsRow.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
+
+      fieldsRow.appendChild(
+        createField("Category Name", "text", cat.name, "e.g. Appetizers", (val) => {
+          state.categories[ci].name = val;
+        })
+      );
+      fieldsRow.appendChild(
+        createTextareaField("Description", cat.description, "Brief description of this category", (val) => {
+          state.categories[ci].description = val;
+        })
+      );
+
+      header.appendChild(fieldsRow);
+      card.appendChild(header);
+
+      // ---- Items section (collapsible) ----
+      if (!isCollapsed) {
+        const itemsSection = document.createElement("div");
+        itemsSection.className = "px-6 py-4";
+
+        if (cat.items.length === 0) {
+          const noItems = document.createElement("p");
+          noItems.className = "text-sm text-brand-text-muted/70 py-3 text-center";
+          noItems.textContent = "No items in this category. Add one below.";
+          itemsSection.appendChild(noItems);
+        } else {
+          cat.items.forEach((item, ii) => {
+            const itemRow = document.createElement("div");
+            itemRow.className = "border border-gray-100 rounded-lg p-4 mb-3 bg-gray-50/50";
+
+            // Item controls row
+            const itemControls = document.createElement("div");
+            itemControls.className = "flex items-center justify-between mb-3";
+
+            const itemLabel = document.createElement("span");
+            itemLabel.className = "text-xs font-medium text-brand-text-muted uppercase tracking-wider";
+            itemLabel.textContent = `Item ${ii + 1}`;
+
+            const itemBtns = document.createElement("div");
+            itemBtns.className = "flex items-center gap-1";
+
+            if (ii > 0) {
+              const upBtn = createIconButton(
+                "Move Up",
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />`,
+                () => { swap(cat.items, ii, ii - 1); render(); },
+                false, true
+              );
+              itemBtns.appendChild(upBtn);
+            }
+
+            if (ii < cat.items.length - 1) {
+              const downBtn = createIconButton(
+                "Move Down",
+                `<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />`,
+                () => { swap(cat.items, ii, ii + 1); render(); },
+                false, true
+              );
+              itemBtns.appendChild(downBtn);
+            }
+
+            const removeItemBtn = createIconButton(
+              "Remove Item",
+              `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />`,
+              () => { cat.items.splice(ii, 1); render(); },
+              true, true
+            );
+            itemBtns.appendChild(removeItemBtn);
+
+            itemControls.appendChild(itemLabel);
+            itemControls.appendChild(itemBtns);
+            itemRow.appendChild(itemControls);
+
+            // Item fields
+            const itemFields = document.createElement("div");
+            itemFields.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3";
+
+            itemFields.appendChild(
+              createField("Name", "text", item.name, "e.g. Coney Dog", (val) => {
+                state.categories[ci].items[ii].name = val;
+              })
+            );
+            itemFields.appendChild(
+              createField("Price", "text", item.price, "e.g. $4.99", (val) => {
+                state.categories[ci].items[ii].price = val;
+              })
+            );
+            itemFields.appendChild(
+              createField("Tags", "text", item.tags.join(", "), "e.g. popular, spicy", (val) => {
+                state.categories[ci].items[ii].tags = val.split(",").map((t) => t.trim()).filter(Boolean);
+              })
+            );
+            itemFields.appendChild(
+              createField("Description", "text", item.description, "Brief description", (val) => {
+                state.categories[ci].items[ii].description = val;
+              })
+            );
+
+            itemRow.appendChild(itemFields);
+            itemsSection.appendChild(itemRow);
+          });
+        }
+
+        // Add item button
+        const addItemRow = document.createElement("div");
+        addItemRow.className = "pt-2";
+
+        const addItemBtn = document.createElement("button");
+        addItemBtn.type = "button";
+        addItemBtn.className = "text-sm text-brand-primary hover:text-brand-primary-dark font-medium transition-colors inline-flex items-center gap-1.5";
+        addItemBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Item
+        `;
+        addItemBtn.addEventListener("click", () => {
+          cat.items.push({ name: "", description: "", price: "", tags: [] });
+          render();
+        });
+        addItemRow.appendChild(addItemBtn);
+        itemsSection.appendChild(addItemRow);
+
+        card.appendChild(itemsSection);
+      }
+
+      editor.appendChild(card);
+    });
+  }
+
+  // ---- Helpers ----
+  function createField(
+    label: string,
+    type: string,
+    value: string,
+    placeholder: string,
+    onChange: (val: string) => void
+  ): HTMLDivElement {
+    const wrapper = document.createElement("div");
+
+    const lbl = document.createElement("label");
+    lbl.className = "block text-xs font-medium text-brand-text-muted mb-1";
+    lbl.textContent = label;
+
+    const input = document.createElement("input");
+    input.type = type;
+    input.value = value;
+    input.placeholder = placeholder;
+    input.className =
+      "w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors";
+    input.addEventListener("input", () => onChange(input.value));
+
+    wrapper.appendChild(lbl);
+    wrapper.appendChild(input);
+    return wrapper;
+  }
+
+  function createTextareaField(
+    label: string,
+    value: string,
+    placeholder: string,
+    onChange: (val: string) => void
+  ): HTMLDivElement {
+    const wrapper = document.createElement("div");
+
+    const lbl = document.createElement("label");
+    lbl.className = "block text-xs font-medium text-brand-text-muted mb-1";
+    lbl.textContent = label;
+
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.placeholder = placeholder;
+    textarea.rows = 2;
+    textarea.className =
+      "w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none";
+    textarea.addEventListener("input", () => onChange(textarea.value));
+
+    wrapper.appendChild(lbl);
+    wrapper.appendChild(textarea);
+    return wrapper;
+  }
+
+  function createIconButton(
+    title: string,
+    svgPath: string,
+    onClick: () => void,
+    isDanger = false,
+    isSmall = false
+  ): HTMLButtonElement {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.title = title;
+    const size = isSmall ? "p-1" : "p-1.5";
+    const hoverColor = isDanger
+      ? "hover:text-red-600 hover:bg-red-50"
+      : "hover:text-brand-primary hover:bg-brand-primary/5";
+    btn.className = `${size} rounded-lg text-brand-text-muted ${hoverColor} transition-colors`;
+    const iconSize = isSmall ? "w-3.5 h-3.5" : "w-4 h-4";
+    btn.innerHTML = `<svg class="${iconSize}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${svgPath}</svg>`;
+    btn.addEventListener("click", onClick);
+    return btn;
+  }
+
+  function swap<T>(arr: T[], i: number, j: number) {
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  function syncCollapsed(from: number, to: number) {
+    const hadFrom = collapsed.has(from);
+    const hadTo = collapsed.has(to);
+    collapsed.delete(from);
+    collapsed.delete(to);
+    if (hadFrom) collapsed.add(to);
+    if (hadTo) collapsed.add(from);
+  }
+
+  function showToast(message: string, isError = false) {
+    toast.textContent = message;
+    toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium transition-all duration-300 transform ${
+      isError ? "bg-red-600 text-white" : "bg-green-600 text-white"
+    }`;
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.classList.remove("translate-y-2", "opacity-0");
+    });
+    setTimeout(() => {
+      toast.classList.add("translate-y-2", "opacity-0");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 300);
+    }, 3000);
+  }
+
+  // ---- Events ----
+  addCategoryBtn.addEventListener("click", () => {
+    state.categories.push({ name: "", description: "", items: [] });
+    render();
+  });
+
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.setAttribute("disabled", "true");
+    saveBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+    try {
+      const res = await fetch("/api/admin/content/menu", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state),
+      });
+
+      if (res.ok) {
+        showToast("Menu saved successfully.");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Failed to save menu.", true);
+      }
+    } catch {
+      showToast("Network error. Please try again.", true);
+    } finally {
+      saveBtn.removeAttribute("disabled");
+      saveBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+  });
+
+  // ---- Initial render ----
+  render();
+</script>

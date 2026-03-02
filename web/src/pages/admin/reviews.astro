@@ -1,0 +1,306 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+
+const apiUrl = import.meta.env.DEV
+  ? (process.env.API_URL || "http://localhost:3000")
+  : "http://api:3000";
+
+const cookie = Astro.request.headers.get("cookie") || "";
+const res = await fetch(`${apiUrl}/api/admin/content/reviews`, { headers: { cookie } });
+const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount: 0, reviews: [] };
+---
+
+<AdminLayout title="Reviews" activePage="reviews">
+  <div class="mb-6">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Reviews</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Manage the customer reviews displayed on your website.</p>
+  </div>
+
+  <!-- Overall Rating & Review Count -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+    <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Summary Info</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="overall-rating" class="block text-sm font-medium text-brand-text-body mb-1">Overall Rating</label>
+        <input
+          type="number"
+          id="overall-rating"
+          step="0.1"
+          min="0"
+          max="5"
+          value={reviewsData.overallRating}
+          class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+        />
+        <p class="text-xs text-brand-text-muted mt-1">Displayed rating (0 - 5, e.g. 4.8)</p>
+      </div>
+      <div>
+        <label for="review-count" class="block text-sm font-medium text-brand-text-body mb-1">Review Count</label>
+        <input
+          type="number"
+          id="review-count"
+          step="1"
+          min="0"
+          value={reviewsData.reviewCount}
+          class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+        />
+        <p class="text-xs text-brand-text-muted mt-1">Total number of reviews to display</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews List -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-heading font-semibold text-brand-text-heading">Individual Reviews</h2>
+      <button
+        id="add-review-btn"
+        type="button"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand-primary rounded-lg hover:bg-brand-primary-dark transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Add Review
+      </button>
+    </div>
+
+    <div id="reviews-list" class="space-y-4">
+      {reviewsData.reviews.map((review: any, idx: number) => (
+        <div class="review-card border border-gray-200 rounded-lg p-4" data-index={idx}>
+          <div class="flex items-start justify-between mb-3">
+            <span class="text-xs font-medium text-brand-text-muted uppercase tracking-wider">Review #{idx + 1}</span>
+            <button
+              type="button"
+              class="remove-review-btn p-1.5 rounded-lg text-brand-text-muted hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Remove review"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+            <div>
+              <label class="block text-sm font-medium text-brand-text-body mb-1">Author Name</label>
+              <input
+                type="text"
+                class="review-author w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+                value={review.author}
+                placeholder="Customer name"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-brand-text-body mb-1">Rating</label>
+              <select class="review-rating w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors">
+                <option value="5" selected={review.rating === 5}>5 Stars</option>
+                <option value="4" selected={review.rating === 4}>4 Stars</option>
+                <option value="3" selected={review.rating === 3}>3 Stars</option>
+                <option value="2" selected={review.rating === 2}>2 Stars</option>
+                <option value="1" selected={review.rating === 1}>1 Star</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-text-body mb-1">Review Text</label>
+            <textarea
+              class="review-text w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+              rows="3"
+              placeholder="What the customer said..."
+            >{review.text}</textarea>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {reviewsData.reviews.length === 0 && (
+      <p id="no-reviews-msg" class="text-center text-brand-text-muted py-8">No reviews yet. Click "Add Review" to get started.</p>
+    )}
+  </div>
+
+  <!-- Save Button -->
+  <div class="flex items-center gap-4">
+    <button
+      id="save-btn"
+      type="button"
+      class="px-6 py-2.5 text-sm font-medium text-white bg-brand-primary rounded-lg hover:bg-brand-primary-dark transition-colors"
+    >
+      Save Changes
+    </button>
+    <span id="save-status" class="text-sm text-brand-text-muted hidden"></span>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium transition-all transform translate-y-2 opacity-0">
+  </div>
+</AdminLayout>
+
+<script type="application/json" id="reviews-data">
+  {JSON.stringify(reviewsData)}
+</script>
+
+<script>
+  const reviewsList = document.getElementById("reviews-list")!;
+  const addBtn = document.getElementById("add-review-btn")!;
+  const saveBtn = document.getElementById("save-btn")!;
+  const toast = document.getElementById("toast")!;
+  const noReviewsMsg = document.getElementById("no-reviews-msg");
+
+  let reviewCounter = reviewsList.querySelectorAll(".review-card").length;
+
+  function createReviewCard(index: number, author = "", rating = 5, text = ""): HTMLDivElement {
+    const card = document.createElement("div");
+    card.className = "review-card border border-gray-200 rounded-lg p-4";
+    card.dataset.index = String(index);
+
+    card.innerHTML = `
+      <div class="flex items-start justify-between mb-3">
+        <span class="text-xs font-medium text-brand-text-muted uppercase tracking-wider">Review #${index + 1}</span>
+        <button
+          type="button"
+          class="remove-review-btn p-1.5 rounded-lg text-brand-text-muted hover:text-red-600 hover:bg-red-50 transition-colors"
+          title="Remove review"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+        <div>
+          <label class="block text-sm font-medium text-brand-text-body mb-1">Author Name</label>
+          <input
+            type="text"
+            class="review-author w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            value="${author.replace(/"/g, "&quot;")}"
+            placeholder="Customer name"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-brand-text-body mb-1">Rating</label>
+          <select class="review-rating w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors">
+            <option value="5"${rating === 5 ? " selected" : ""}>5 Stars</option>
+            <option value="4"${rating === 4 ? " selected" : ""}>4 Stars</option>
+            <option value="3"${rating === 3 ? " selected" : ""}>3 Stars</option>
+            <option value="2"${rating === 2 ? " selected" : ""}>2 Stars</option>
+            <option value="1"${rating === 1 ? " selected" : ""}>1 Star</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-brand-text-body mb-1">Review Text</label>
+        <textarea
+          class="review-text w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+          rows="3"
+          placeholder="What the customer said..."
+        >${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>
+      </div>
+    `;
+
+    // Attach remove handler
+    card.querySelector(".remove-review-btn")!.addEventListener("click", () => {
+      card.remove();
+      renumberCards();
+      toggleNoReviewsMsg();
+    });
+
+    return card;
+  }
+
+  function renumberCards(): void {
+    const cards = reviewsList.querySelectorAll(".review-card");
+    cards.forEach((card, i) => {
+      card.dataset.index = String(i);
+      const label = card.querySelector(".text-xs.font-medium");
+      if (label) label.textContent = `Review #${i + 1}`;
+    });
+  }
+
+  function toggleNoReviewsMsg(): void {
+    if (!noReviewsMsg) return;
+    const hasCards = reviewsList.querySelectorAll(".review-card").length > 0;
+    noReviewsMsg.classList.toggle("hidden", hasCards);
+  }
+
+  function showToast(message: string, isError = false): void {
+    toast.textContent = message;
+    toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium transition-all transform ${
+      isError ? "bg-red-600 text-white" : "bg-green-600 text-white"
+    }`;
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.classList.remove("translate-y-2", "opacity-0");
+    });
+    setTimeout(() => {
+      toast.classList.add("translate-y-2", "opacity-0");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 300);
+    }, 3000);
+  }
+
+  function collectData(): { overallRating: number; reviewCount: number; reviews: { text: string; author: string; rating: number }[] } {
+    const overallRating = parseFloat((document.getElementById("overall-rating") as HTMLInputElement).value) || 0;
+    const reviewCount = parseInt((document.getElementById("review-count") as HTMLInputElement).value, 10) || 0;
+
+    const cards = reviewsList.querySelectorAll(".review-card");
+    const reviews: { text: string; author: string; rating: number }[] = [];
+
+    cards.forEach((card) => {
+      const author = (card.querySelector(".review-author") as HTMLInputElement).value.trim();
+      const rating = parseInt((card.querySelector(".review-rating") as HTMLSelectElement).value, 10);
+      const text = (card.querySelector(".review-text") as HTMLTextAreaElement).value.trim();
+      reviews.push({ text, author, rating });
+    });
+
+    return { overallRating, reviewCount, reviews };
+  }
+
+  // Attach remove handlers to existing cards rendered server-side
+  document.querySelectorAll(".remove-review-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      btn.closest(".review-card")!.remove();
+      renumberCards();
+      toggleNoReviewsMsg();
+    });
+  });
+
+  // Add Review
+  addBtn.addEventListener("click", () => {
+    reviewCounter = reviewsList.querySelectorAll(".review-card").length;
+    const card = createReviewCard(reviewCounter);
+    reviewsList.appendChild(card);
+    toggleNoReviewsMsg();
+    // Scroll to new card
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+
+  // Save Changes
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.setAttribute("disabled", "true");
+    saveBtn.textContent = "Saving...";
+
+    const data = collectData();
+
+    try {
+      const res = await fetch("/api/admin/content/reviews", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        showToast("Reviews saved successfully!");
+      } else {
+        const errData = await res.json().catch(() => ({ error: "Unknown error" }));
+        showToast(errData.error || "Failed to save reviews", true);
+      }
+    } catch {
+      showToast("Network error. Please try again.", true);
+    } finally {
+      saveBtn.removeAttribute("disabled");
+      saveBtn.textContent = "Save Changes";
+    }
+  });
+</script>

@@ -1,0 +1,59 @@
+---
+import type { SiteInfoContent } from "../../../../shared/types";
+
+interface Props {
+  site: SiteInfoContent;
+}
+
+const { site } = Astro.props;
+---
+
+<section class="py-16 md:py-20 px-4 md:px-8">
+  <div class="mx-auto max-w-3xl">
+    <div class="text-lg leading-relaxed text-brand-text-body">
+      <p>
+        Walk through our doors on any given morning and you'll hear the sizzle of eggs on
+        the griddle, the friendly shout of "order up!", and the kind of easy conversation
+        that only happens in a place where everybody's a regular. That's {site.name} —
+        a Holly, Michigan staple since 1995.
+      </p>
+
+      <p class="mt-6">
+        We're part of a proud tradition of Michigan coney islands — those no-nonsense
+        diners where the chili is homemade, the coffee is always fresh, and you never leave
+        hungry. Our coney dogs are smothered in our own chili sauce recipe, topped with
+        diced onions and a perfect line of yellow mustard. Pair that with a side of crispy
+        hash browns and a bottomless cup of coffee, and you've got the kind of meal that
+        keeps families driving in from Fenton, Clarkston, and all over Oakland County.
+      </p>
+
+      <p class="mt-6">
+        But {site.name} is more than just great food. It's the booth where you celebrated
+        your kid's first Little League win. It's the counter seat where you catch up with
+        neighbors you haven't seen all week. It's the place where the staff remembers your
+        name, your usual order, and asks about your family. Holly is a tight-knit town,
+        and we're proud to be part of what makes it feel like home.
+      </p>
+    </div>
+
+    <!-- Restaurant photo placeholder -->
+    <div class="mt-10 aspect-[16/9] bg-brand-accent rounded-xl overflow-hidden flex flex-col items-center justify-center border-2 border-brand-primary/10">
+      <svg
+        class="w-16 h-16 text-brand-primary/20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21z"
+        />
+      </svg>
+      <p class="text-brand-primary/40 text-sm mt-3 font-medium">
+        Restaurant photo coming soon
+      </p>
+    </div>
+  </div>
+</section>

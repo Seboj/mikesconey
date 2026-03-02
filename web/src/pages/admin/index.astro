@@ -1,0 +1,111 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+
+const apiUrl = import.meta.env.DEV
+  ? (process.env.API_URL || "http://localhost:3000")
+  : "http://api:3000";
+
+const cookie = Astro.request.headers.get("cookie") || "";
+
+let stats = { totalCustomers: 0, newThisWeek: 0, newThisMonth: 0, optInEmail: 0, optInSms: 0 };
+let recentCustomers: any[] = [];
+
+try {
+  const [statsRes, customersRes] = await Promise.all([
+    fetch(`${apiUrl}/api/admin/dashboard/stats`, { headers: { cookie } }),
+    fetch(`${apiUrl}/api/admin/customers?limit=10&sort=created_at&order=desc`, { headers: { cookie } }),
+  ]);
+
+  if (statsRes.ok) stats = await statsRes.json();
+  if (customersRes.ok) {
+    const data = await customersRes.json();
+    recentCustomers = data.data || [];
+  }
+} catch {
+  // Failed to load dashboard data
+}
+
+const statCards = [
+  { label: "Total Customers", value: stats.totalCustomers, color: "bg-blue-500" },
+  { label: "New This Week", value: stats.newThisWeek, color: "bg-green-500" },
+  { label: "New This Month", value: stats.newThisMonth, color: "bg-purple-500" },
+  { label: "Email Opt-In", value: stats.optInEmail, color: "bg-amber-500" },
+  { label: "SMS Opt-In", value: stats.optInSms, color: "bg-rose-500" },
+];
+---
+
+<AdminLayout title="Dashboard" activePage="dashboard">
+  <div class="mb-8">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Dashboard</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Welcome back. Here's what's happening with your customer signups.</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    {statCards.map((card) => (
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class={`w-10 h-10 ${card.color} rounded-lg flex items-center justify-center`}>
+            <span class="text-white font-bold text-lg">{card.value}</span>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-brand-text-heading">{card.value}</p>
+            <p class="text-xs text-brand-text-muted">{card.label}</p>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Recent Signups -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="font-heading font-semibold text-brand-text-heading">Recent Signups</h2>
+      <a href="/admin/customers" class="text-sm text-brand-primary hover:text-brand-primary-dark font-medium transition-colors">
+        View All &rarr;
+      </a>
+    </div>
+
+    {recentCustomers.length > 0 ? (
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100">
+              <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Name</th>
+              <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Email</th>
+              <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Phone</th>
+              <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Opt-In</th>
+              <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Signed Up</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            {recentCustomers.map((c: any) => (
+              <tr class="hover:bg-gray-50/50 transition-colors">
+                <td class="px-6 py-3 font-medium text-brand-text-heading">
+                  {c.firstName} {c.lastName}
+                </td>
+                <td class="px-6 py-3 text-brand-text-body">{c.email}</td>
+                <td class="px-6 py-3 text-brand-text-body">{c.phone || "—"}</td>
+                <td class="px-6 py-3">
+                  <span class="inline-flex gap-1">
+                    {c.optInEmail && <span class="px-2 py-0.5 text-xs font-medium bg-green-50 text-green-700 rounded-full">Email</span>}
+                    {c.optInSms && <span class="px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">SMS</span>}
+                  </span>
+                </td>
+                <td class="px-6 py-3 text-brand-text-muted">
+                  {new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div class="px-6 py-12 text-center">
+        <p class="text-brand-text-muted">No customer signups yet. Once customers sign up on the website, they'll appear here.</p>
+      </div>
+    )}
+  </div>
+</AdminLayout>

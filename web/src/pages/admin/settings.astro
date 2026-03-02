@@ -1,0 +1,368 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+
+const apiUrl = import.meta.env.DEV
+  ? (process.env.API_URL || "http://localhost:3000")
+  : "http://api:3000";
+
+const cookie = Astro.request.headers.get("cookie") || "";
+const res = await fetch(`${apiUrl}/api/admin/content/site_info`, { headers: { cookie } });
+const siteInfo = res.ok ? await res.json() : {};
+---
+
+<AdminLayout title="Site Settings" activePage="settings">
+  <div class="mb-8">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Site Settings</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Manage your site name, contact info, social links, and SEO settings.</p>
+  </div>
+
+  <form id="settings-form" class="space-y-6 max-w-3xl">
+
+    <!-- General -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-1 h-6 bg-brand-primary rounded-full"></div>
+        <h2 class="font-heading font-semibold text-brand-text-heading">General</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label for="name" class="block text-sm font-medium text-brand-text-body mb-1">Site Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={siteInfo.name || ""}
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div class="sm:col-span-2">
+          <label for="tagline" class="block text-sm font-medium text-brand-text-body mb-1">Tagline</label>
+          <input
+            type="text"
+            id="tagline"
+            name="tagline"
+            value={siteInfo.tagline || ""}
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label for="since" class="block text-sm font-medium text-brand-text-body mb-1">Since (Year)</label>
+          <input
+            type="text"
+            id="since"
+            name="since"
+            value={siteInfo.since || ""}
+            placeholder="e.g. 1985"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Address -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-1 h-6 bg-brand-primary rounded-full"></div>
+        <h2 class="font-heading font-semibold text-brand-text-heading">Address</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label for="address-street" class="block text-sm font-medium text-brand-text-body mb-1">Street</label>
+          <input
+            type="text"
+            id="address-street"
+            name="address.street"
+            value={siteInfo.address?.street || ""}
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label for="address-city" class="block text-sm font-medium text-brand-text-body mb-1">City</label>
+          <input
+            type="text"
+            id="address-city"
+            name="address.city"
+            value={siteInfo.address?.city || ""}
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="address-state" class="block text-sm font-medium text-brand-text-body mb-1">State</label>
+            <input
+              type="text"
+              id="address-state"
+              name="address.state"
+              value={siteInfo.address?.state || ""}
+              class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            />
+          </div>
+          <div>
+            <label for="address-zip" class="block text-sm font-medium text-brand-text-body mb-1">ZIP</label>
+            <input
+              type="text"
+              id="address-zip"
+              name="address.zip"
+              value={siteInfo.address?.zip || ""}
+              class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            />
+          </div>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="address-full" class="block text-sm font-medium text-brand-text-body mb-1">Full Address (display)</label>
+          <input
+            type="text"
+            id="address-full"
+            name="address.full"
+            value={siteInfo.address?.full || ""}
+            placeholder="e.g. 123 Main St, City, ST 12345"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-1 h-6 bg-brand-primary rounded-full"></div>
+        <h2 class="font-heading font-semibold text-brand-text-heading">Phone</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="phone-display" class="block text-sm font-medium text-brand-text-body mb-1">Display Format</label>
+          <input
+            type="text"
+            id="phone-display"
+            name="phone.display"
+            value={siteInfo.phone?.display || ""}
+            placeholder="e.g. (313) 555-1234"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label for="phone-tel" class="block text-sm font-medium text-brand-text-body mb-1">Tel Link</label>
+          <input
+            type="text"
+            id="phone-tel"
+            name="phone.tel"
+            value={siteInfo.phone?.tel || ""}
+            placeholder="e.g. +13135551234"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Social -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-1 h-6 bg-brand-primary rounded-full"></div>
+        <h2 class="font-heading font-semibold text-brand-text-heading">Social</h2>
+      </div>
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label for="social-instagram" class="block text-sm font-medium text-brand-text-body mb-1">Instagram URL</label>
+          <input
+            type="url"
+            id="social-instagram"
+            name="social.instagram"
+            value={siteInfo.social?.instagram || ""}
+            placeholder="https://instagram.com/yourpage"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label for="social-facebook" class="block text-sm font-medium text-brand-text-body mb-1">Facebook URL</label>
+          <input
+            type="url"
+            id="social-facebook"
+            name="social.facebook"
+            value={siteInfo.social?.facebook || ""}
+            placeholder="https://facebook.com/yourpage"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Maps -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-1 h-6 bg-brand-primary rounded-full"></div>
+        <h2 class="font-heading font-semibold text-brand-text-heading">Maps</h2>
+      </div>
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label for="maps-embedUrl" class="block text-sm font-medium text-brand-text-body mb-1">Embed URL</label>
+          <input
+            type="url"
+            id="maps-embedUrl"
+            name="maps.embedUrl"
+            value={siteInfo.maps?.embedUrl || ""}
+            placeholder="Google Maps embed URL"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label for="maps-directionsUrl" class="block text-sm font-medium text-brand-text-body mb-1">Directions URL</label>
+          <input
+            type="url"
+            id="maps-directionsUrl"
+            name="maps.directionsUrl"
+            value={siteInfo.maps?.directionsUrl || ""}
+            placeholder="Google Maps directions link"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- SEO -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-1 h-6 bg-brand-primary rounded-full"></div>
+        <h2 class="font-heading font-semibold text-brand-text-heading">SEO</h2>
+      </div>
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label for="seo-titleTemplate" class="block text-sm font-medium text-brand-text-body mb-1">Title Template</label>
+          <input
+            type="text"
+            id="seo-titleTemplate"
+            name="seo.titleTemplate"
+            value={siteInfo.seo?.titleTemplate || ""}
+            placeholder="e.g. %s | Mike's Coney"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label for="seo-description" class="block text-sm font-medium text-brand-text-body mb-1">Meta Description</label>
+          <textarea
+            id="seo-description"
+            name="seo.description"
+            rows="3"
+            placeholder="Default meta description for the site"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+          >{siteInfo.seo?.description || ""}</textarea>
+        </div>
+        <div>
+          <label for="seo-ogImage" class="block text-sm font-medium text-brand-text-body mb-1">OG Image URL</label>
+          <input
+            type="url"
+            id="seo-ogImage"
+            name="seo.ogImage"
+            value={siteInfo.seo?.ogImage || ""}
+            placeholder="https://example.com/og-image.jpg"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex items-center gap-4">
+      <button
+        type="submit"
+        id="save-btn"
+        class="px-6 py-2.5 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark transition-colors"
+      >
+        Save Changes
+      </button>
+      <span id="save-status" class="text-sm hidden"></span>
+    </div>
+  </form>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium transition-all duration-300 translate-y-2 opacity-0">
+  </div>
+</AdminLayout>
+
+<script>
+  const form = document.getElementById("settings-form") as HTMLFormElement;
+  const saveBtn = document.getElementById("save-btn") as HTMLButtonElement;
+  const toast = document.getElementById("toast")!;
+
+  function showToast(message: string, success: boolean) {
+    toast.textContent = message;
+    toast.className = success
+      ? "fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium transition-all duration-300 bg-green-600 text-white"
+      : "fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium transition-all duration-300 bg-red-600 text-white";
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.classList.remove("translate-y-2", "opacity-0");
+    });
+
+    setTimeout(() => {
+      toast.classList.add("translate-y-2", "opacity-0");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 300);
+    }, 3000);
+  }
+
+  function getValue(id: string): string {
+    const el = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
+    return el ? el.value.trim() : "";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+
+    const body = {
+      name: getValue("name"),
+      tagline: getValue("tagline"),
+      since: getValue("since"),
+      address: {
+        street: getValue("address-street"),
+        city: getValue("address-city"),
+        state: getValue("address-state"),
+        zip: getValue("address-zip"),
+        full: getValue("address-full"),
+      },
+      phone: {
+        display: getValue("phone-display"),
+        tel: getValue("phone-tel"),
+      },
+      social: {
+        instagram: getValue("social-instagram"),
+        facebook: getValue("social-facebook"),
+      },
+      maps: {
+        embedUrl: getValue("maps-embedUrl"),
+        directionsUrl: getValue("maps-directionsUrl"),
+      },
+      seo: {
+        titleTemplate: getValue("seo-titleTemplate"),
+        description: getValue("seo-description"),
+        ogImage: getValue("seo-ogImage"),
+      },
+    };
+
+    try {
+      const res = await fetch("/api/admin/content/site_info", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        showToast("Settings saved successfully.", true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Failed to save settings.", false);
+      }
+    } catch {
+      showToast("Network error. Please try again.", false);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save Changes";
+    }
+  });
+</script>

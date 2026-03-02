@@ -1,0 +1,296 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+
+const apiUrl = import.meta.env.DEV
+  ? (process.env.API_URL || "http://localhost:3000")
+  : "http://api:3000";
+
+const cookie = Astro.request.headers.get("cookie") || "";
+const res = await fetch(`${apiUrl}/api/admin/content/faq`, { headers: { cookie } });
+const faqItems = res.ok ? await res.json() : [];
+---
+
+<AdminLayout title="FAQ" activePage="faq">
+  <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="font-heading text-2xl font-bold text-brand-text-heading">FAQ</h1>
+      <p class="text-sm text-brand-text-muted mt-1">Manage frequently asked questions displayed on the website.</p>
+    </div>
+    <button
+      id="save-btn"
+      class="px-5 py-2.5 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark transition-colors inline-flex items-center gap-2"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+      Save Changes
+    </button>
+  </div>
+
+  <!-- FAQ Items Container -->
+  <div id="faq-list" class="space-y-4 mb-6">
+    <!-- Items rendered by JS -->
+  </div>
+
+  <!-- Add Question Button -->
+  <button
+    id="add-btn"
+    class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-medium text-brand-text-muted hover:border-brand-primary hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+    Add Question
+  </button>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium text-white transition-all duration-300 transform translate-y-2 opacity-0">
+  </div>
+
+  <!-- Initial data -->
+  <script id="faq-data" type="application/json" set:html={JSON.stringify(faqItems)} />
+</AdminLayout>
+
+<script>
+  // Parse initial FAQ data
+  const dataEl = document.getElementById("faq-data");
+  let faqItems: { question: string; answer: string }[] = [];
+  try {
+    faqItems = JSON.parse(dataEl?.textContent || "[]");
+  } catch {
+    faqItems = [];
+  }
+
+  const listEl = document.getElementById("faq-list")!;
+  const addBtn = document.getElementById("add-btn")!;
+  const saveBtn = document.getElementById("save-btn")!;
+  const toast = document.getElementById("toast")!;
+
+  function showToast(message: string, type: "success" | "error") {
+    toast.textContent = message;
+    toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-sm font-medium text-white transition-all duration-300 ${
+      type === "success" ? "bg-green-600" : "bg-red-600"
+    }`;
+    // Trigger reflow then animate in
+    requestAnimationFrame(() => {
+      toast.classList.remove("translate-y-2", "opacity-0");
+    });
+    setTimeout(() => {
+      toast.classList.add("translate-y-2", "opacity-0");
+      setTimeout(() => toast.classList.add("hidden"), 300);
+    }, 3000);
+  }
+
+  function createFaqCard(item: { question: string; answer: string }, index: number): HTMLElement {
+    const card = document.createElement("div");
+    card.className = "bg-white rounded-xl shadow-sm border border-gray-100 p-5";
+    card.dataset.index = String(index);
+
+    card.innerHTML = `
+      <div class="flex items-start gap-4">
+        <div class="flex flex-col gap-1 pt-1">
+          <button class="move-up-btn p-1 rounded hover:bg-gray-100 text-brand-text-muted hover:text-brand-text-heading transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Move up">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+            </svg>
+          </button>
+          <span class="text-xs text-brand-text-muted text-center font-medium">${index + 1}</span>
+          <button class="move-down-btn p-1 rounded hover:bg-gray-100 text-brand-text-muted hover:text-brand-text-heading transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="Move down">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex-1 space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-brand-text-body mb-1">Question</label>
+            <input
+              type="text"
+              class="faq-question w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              placeholder="Enter the question..."
+              value="${escapeAttr(item.question)}"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-text-body mb-1">Answer</label>
+            <textarea
+              class="faq-answer w-full px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+              rows="3"
+              placeholder="Enter the answer..."
+            >${escapeHtml(item.answer)}</textarea>
+          </div>
+        </div>
+
+        <button class="remove-btn mt-1 p-2 rounded-lg text-brand-text-muted hover:text-red-600 hover:bg-red-50 transition-colors" title="Remove question">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    `;
+
+    // Move up
+    card.querySelector(".move-up-btn")!.addEventListener("click", () => {
+      const idx = getCardIndex(card);
+      if (idx > 0) {
+        const items = collectItems();
+        const temp = items[idx];
+        items[idx] = items[idx - 1];
+        items[idx - 1] = temp;
+        renderAll(items);
+      }
+    });
+
+    // Move down
+    card.querySelector(".move-down-btn")!.addEventListener("click", () => {
+      const idx = getCardIndex(card);
+      const items = collectItems();
+      if (idx < items.length - 1) {
+        const temp = items[idx];
+        items[idx] = items[idx + 1];
+        items[idx + 1] = temp;
+        renderAll(items);
+      }
+    });
+
+    // Remove
+    card.querySelector(".remove-btn")!.addEventListener("click", () => {
+      if (confirm("Are you sure you want to remove this question?")) {
+        const items = collectItems();
+        items.splice(getCardIndex(card), 1);
+        renderAll(items);
+      }
+    });
+
+    return card;
+  }
+
+  function escapeHtml(str: string): string {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str: string): string {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function getCardIndex(card: HTMLElement): number {
+    return Array.from(listEl.children).indexOf(card);
+  }
+
+  function collectItems(): { question: string; answer: string }[] {
+    const cards = listEl.querySelectorAll("[data-index]");
+    const items: { question: string; answer: string }[] = [];
+    cards.forEach((card) => {
+      const question = (card.querySelector(".faq-question") as HTMLInputElement).value;
+      const answer = (card.querySelector(".faq-answer") as HTMLTextAreaElement).value;
+      items.push({ question, answer });
+    });
+    return items;
+  }
+
+  function updateButtonStates() {
+    const cards = listEl.querySelectorAll("[data-index]");
+    cards.forEach((card, i) => {
+      const upBtn = card.querySelector(".move-up-btn") as HTMLButtonElement;
+      const downBtn = card.querySelector(".move-down-btn") as HTMLButtonElement;
+      upBtn.disabled = i === 0;
+      downBtn.disabled = i === cards.length - 1;
+      // Update number label
+      const numberLabel = card.querySelector(".text-xs.text-brand-text-muted.text-center");
+      if (numberLabel) numberLabel.textContent = String(i + 1);
+      (card as HTMLElement).dataset.index = String(i);
+    });
+  }
+
+  function renderAll(items: { question: string; answer: string }[]) {
+    listEl.innerHTML = "";
+    items.forEach((item, i) => {
+      listEl.appendChild(createFaqCard(item, i));
+    });
+    updateButtonStates();
+    updateEmptyState();
+  }
+
+  function updateEmptyState() {
+    const existing = document.getElementById("empty-state");
+    if (listEl.children.length === 0) {
+      if (!existing) {
+        const empty = document.createElement("div");
+        empty.id = "empty-state";
+        empty.className = "bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-12 text-center";
+        empty.innerHTML = `<p class="text-brand-text-muted">No FAQ items yet. Click "Add Question" below to get started.</p>`;
+        listEl.appendChild(empty);
+      }
+    } else {
+      existing?.remove();
+    }
+  }
+
+  // Add new item
+  addBtn.addEventListener("click", () => {
+    document.getElementById("empty-state")?.remove();
+    const items = collectItems();
+    items.push({ question: "", answer: "" });
+    renderAll(items);
+    // Focus the new question input
+    const lastCard = listEl.lastElementChild;
+    if (lastCard) {
+      (lastCard.querySelector(".faq-question") as HTMLInputElement)?.focus();
+    }
+  });
+
+  // Save
+  saveBtn.addEventListener("click", async () => {
+    const items = collectItems();
+
+    // Validate: remove empty items but warn if there are incomplete ones
+    const hasIncomplete = items.some((item) => (item.question && !item.answer) || (!item.question && item.answer));
+    if (hasIncomplete) {
+      showToast("Some items have a question without an answer or vice versa. Please complete or remove them.", "error");
+      return;
+    }
+
+    // Filter out completely empty pairs
+    const filtered = items.filter((item) => item.question.trim() || item.answer.trim());
+
+    saveBtn.setAttribute("disabled", "true");
+    saveBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+    try {
+      const res = await fetch("/api/admin/content/faq", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(filtered),
+      });
+
+      if (res.ok) {
+        showToast("FAQ saved successfully.", "success");
+        // Re-render with filtered data (removes empty rows)
+        if (filtered.length !== items.length) {
+          renderAll(filtered);
+        }
+      } else {
+        const data = await res.json().catch(() => ({ error: "Unknown error" }));
+        showToast(data.error || "Failed to save FAQ.", "error");
+      }
+    } catch {
+      showToast("Network error. Please try again.", "error");
+    } finally {
+      saveBtn.removeAttribute("disabled");
+      saveBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+  });
+
+  // Initial render
+  renderAll(faqItems);
+</script>

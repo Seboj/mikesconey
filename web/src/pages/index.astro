@@ -1,0 +1,24 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HeroSection from "../components/HeroSection.astro";
+import HoursCard from "../components/HoursCard.astro";
+import AboutTeaser from "../components/AboutTeaser.astro";
+import SocialProof from "../components/SocialProof.astro";
+import { fetchContent } from "../lib/api";
+import type { SiteInfoContent, HoursContent, ReviewsContent } from "../../../shared/types";
+
+const [siteInfo, hours, reviews] = await Promise.all([
+  fetchContent<SiteInfoContent>("site_info"),
+  fetchContent<HoursContent>("hours"),
+  fetchContent<ReviewsContent>("reviews"),
+]);
+---
+
+<BaseLayout title="Home" siteInfo={siteInfo} hours={hours}>
+  <HeroSection site={siteInfo} />
+  <HoursCard hours={hours} />
+  <AboutTeaser site={siteInfo} />
+  <SocialProof reviews={reviews} />
+</BaseLayout>

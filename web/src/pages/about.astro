@@ -1,0 +1,24 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AboutHero from "../components/about/AboutHero.astro";
+import BrandStory from "../components/about/BrandStory.astro";
+import HighlightCards from "../components/about/HighlightCards.astro";
+import ReviewsCallout from "../components/about/ReviewsCallout.astro";
+import { fetchContent } from "../lib/api";
+import type { SiteInfoContent, HoursContent, ReviewsContent } from "../../../shared/types";
+
+const [siteInfo, hours, reviews] = await Promise.all([
+  fetchContent<SiteInfoContent>("site_info"),
+  fetchContent<HoursContent>("hours"),
+  fetchContent<ReviewsContent>("reviews"),
+]);
+---
+
+<BaseLayout title="About" description="Learn about Mike's Coney Island — serving classic coneys, burgers, and breakfast to the Holly, Michigan community since 1995." siteInfo={siteInfo} hours={hours}>
+  <AboutHero site={siteInfo} />
+  <BrandStory site={siteInfo} />
+  <HighlightCards />
+  <ReviewsCallout reviews={reviews} />
+</BaseLayout>

@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mikesconey}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_local_only}
+      POSTGRES_DB: ${POSTGRES_DB:-mikesconey}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mikesconey}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mikesconey}:${POSTGRES_PASSWORD:-changeme_local_only}@db:5432/${POSTGRES_DB:-mikesconey}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-session-secret-change-in-prod}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@mikesconey.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      NODE_ENV: ${NODE_ENV:-development}
+      API_PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server/src:/app/src
+    develop:
+      watch:
+        - action: sync
+          path: ./server/src
+          target: /app/src
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    environment:
+      API_URL: http://api:3000
+    depends_on:
+      - api
+    volumes:
+      - ./web/src:/app/src
+      - ./web/public:/app/public
+    develop:
+      watch:
+        - action: sync
+          path: ./web/src
+          target: /app/src
+
+volumes:
+  postgres-data:
