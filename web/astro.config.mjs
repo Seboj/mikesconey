@@ -4,7 +4,7 @@ import sitemap from "@astrojs/sitemap";
 import node from "@astrojs/node";
 
 export default defineConfig({
-  site: "https://mikesconey.com",
+  site: process.env.SITE_URL || "https://www.mikesconeyisland.com",
   adapter: node({ mode: "standalone" }),
   integrations: [sitemap()],
   vite: {

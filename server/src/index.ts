@@ -10,6 +10,7 @@ import { authRouter } from "./routes/auth.js";
 import { dashboardRouter } from "./routes/dashboard.js";
 import { contentRouter } from "./routes/content.js";
 import { adminContentRouter } from "./routes/admin-content.js";
+import { adminGalleryRouter } from "./routes/admin-gallery.js";
 import { authMiddleware } from "./middleware/auth.js";
 
 const app = express();
@@ -19,7 +20,11 @@ const port = parseInt(process.env.API_PORT || "3000", 10);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production" ? "https://mikesconey.com" : true,
+    origin: process.env.NODE_ENV === "production"
+      ? (process.env.CORS_ORIGINS || "https://www.mikesconeyisland.com,https://mikesconeyisland.com")
+          .split(",")
+          .map((s) => s.trim())
+      : true,
     credentials: true,
   })
 );
@@ -41,6 +46,7 @@ app.use(
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
+      ...(process.env.COOKIE_DOMAIN && { domain: process.env.COOKIE_DOMAIN }),
     },
   })
 );
@@ -52,6 +58,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/content", contentRouter);
 app.use("/api/admin", authMiddleware, dashboardRouter);
 app.use("/api/admin", authMiddleware, adminContentRouter);
+app.use("/api/admin", authMiddleware, adminGalleryRouter);
 
 // Global error handler
 app.use(

@@ -20,4 +20,4 @@ USER appuser
 
 EXPOSE 3000
 
-CMD ["npx", "tsx", "src/index.ts"]
+CMD ["sh", "-c", "npx tsx src/db/migrate.ts && npx tsx src/db/seed.ts && npx tsx src/index.ts"]

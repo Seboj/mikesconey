@@ -30,6 +30,11 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
       NODE_ENV: ${NODE_ENV:-development}
       API_PORT: 3000
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-mikesconeyisland-gallery}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      CDN_BASE_URL: ${CDN_BASE_URL:-}
     depends_on:
       db:
         condition: service_healthy
@@ -50,6 +55,7 @@ services:
       - "4321:4321"
     environment:
       API_URL: http://api:3000
+      SITE_MODE: ${SITE_MODE:-live}
     depends_on:
       - api
     volumes:

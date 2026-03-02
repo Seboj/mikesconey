@@ -1,0 +1,62 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+  API_REPO: mikesconey/api
+  WEB_REPO: mikesconey/web
+  API_SERVICE_ARN: ${{ secrets.APPRUNNER_API_ARN }}
+  WEB_PROD_SERVICE_ARN: ${{ secrets.APPRUNNER_WEB_PROD_ARN }}
+  WEB_TEST_SERVICE_ARN: ${{ secrets.APPRUNNER_WEB_TEST_ARN }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push API image
+        run: |
+          docker build -t $ECR_REGISTRY/$API_REPO:${{ github.sha }} \
+                       -t $ECR_REGISTRY/$API_REPO:latest \
+                       -f server/Dockerfile.prod server/
+          docker push $ECR_REGISTRY/$API_REPO --all-tags
+
+      - name: Build and push Web image
+        run: |
+          docker build -t $ECR_REGISTRY/$WEB_REPO:${{ github.sha }} \
+                       -t $ECR_REGISTRY/$WEB_REPO:latest \
+                       -f web/Dockerfile.prod web/
+          docker push $ECR_REGISTRY/$WEB_REPO --all-tags
+
+      - name: Deploy API to App Runner
+        run: |
+          aws apprunner start-deployment --service-arn $API_SERVICE_ARN
+
+      - name: Deploy Web (prod) to App Runner
+        run: |
+          aws apprunner start-deployment --service-arn $WEB_PROD_SERVICE_ARN
+
+      - name: Deploy Web (test) to App Runner
+        if: ${{ vars.DEPLOY_TEST_SITE == 'true' }}
+        run: |
+          aws apprunner start-deployment --service-arn $WEB_TEST_SERVICE_ARN

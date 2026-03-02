@@ -1,0 +1,306 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+
+const apiUrl = import.meta.env.DEV
+  ? (process.env.API_URL || "http://localhost:3000")
+  : "http://api:3000";
+
+const cookie = Astro.request.headers.get("cookie") || "";
+
+interface GalleryImage {
+  id: string;
+  src: string;
+  alt: string;
+  caption?: string;
+  category: string;
+  isPlaceholder: boolean;
+  s3Key?: string;
+}
+
+let images: GalleryImage[] = [];
+
+try {
+  const res = await fetch(`${apiUrl}/api/admin/content/gallery`, {
+    headers: { cookie },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      images = data;
+    }
+  }
+} catch {
+  // Failed to load gallery data
+}
+---
+
+<AdminLayout title="Gallery" activePage="gallery">
+  <div class="mb-6">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Gallery</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Upload and manage gallery images. Images are resized and converted to WebP automatically.</p>
+  </div>
+
+  <!-- Upload section -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+    <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Add Image</h2>
+    <form id="upload-form" class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Image File</label>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            required
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Category</label>
+          <select
+            name="category"
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          >
+            <option value="food">Food</option>
+            <option value="atmosphere">Atmosphere</option>
+            <option value="people">People</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Alt Text</label>
+          <input
+            type="text"
+            name="alt"
+            placeholder="Describe the image..."
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Caption (optional)</label>
+          <input
+            type="text"
+            name="caption"
+            placeholder="Optional caption..."
+            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          />
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button
+          type="submit"
+          id="upload-btn"
+          class="px-5 py-2.5 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Upload Image
+        </button>
+        <div id="upload-progress" class="hidden text-sm text-brand-text-muted">
+          <svg class="animate-spin inline-block w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Uploading...
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Message -->
+  <div id="gallery-message" class="hidden mb-4 px-4 py-3 rounded-lg text-sm font-medium"></div>
+
+  <!-- Image grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="gallery-grid">
+    {images.map((image) => (
+      <div class="gallery-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-id={image.id}>
+        <div class="relative aspect-[4/3] bg-gray-100">
+          {image.isPlaceholder ? (
+            <div class="w-full h-full flex items-center justify-center bg-gray-50">
+              <img src={image.src} alt={image.alt} class="w-20 h-20 opacity-40" />
+            </div>
+          ) : (
+            <img src={image.src} alt={image.alt} class="w-full h-full object-cover" loading="lazy" />
+          )}
+          {image.isPlaceholder && (
+            <span class="absolute top-2 right-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+              Placeholder
+            </span>
+          )}
+          <span class:list={[
+            "absolute top-2 left-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+            image.category === "food" ? "bg-green-100 text-green-700" :
+            image.category === "atmosphere" ? "bg-blue-100 text-blue-700" :
+            "bg-purple-100 text-purple-700"
+          ]}>
+            {image.category}
+          </span>
+        </div>
+        <div class="p-4 space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Alt Text</label>
+            <input
+              type="text"
+              class="card-alt w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              value={image.alt}
+              placeholder="Alt text..."
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Caption</label>
+            <input
+              type="text"
+              class="card-caption w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              value={image.caption || ""}
+              placeholder="Caption..."
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Category</label>
+            <select
+              class="card-category w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            >
+              <option value="food" selected={image.category === "food"}>Food</option>
+              <option value="atmosphere" selected={image.category === "atmosphere"}>Atmosphere</option>
+              <option value="people" selected={image.category === "people"}>People</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              class="save-meta-btn flex-1 px-3 py-1.5 bg-brand-primary/10 text-brand-primary text-xs font-medium rounded-lg hover:bg-brand-primary/20 transition-colors"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              class="delete-btn px-3 py-1.5 bg-red-50 text-red-600 text-xs font-medium rounded-lg hover:bg-red-100 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  {images.length === 0 && (
+    <div class="text-center py-12 text-brand-text-muted">
+      <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <p class="text-sm">No gallery images yet. Upload your first image above.</p>
+    </div>
+  )}
+</AdminLayout>
+
+<script>
+  const messageEl = document.getElementById("gallery-message")!;
+  const uploadForm = document.getElementById("upload-form") as HTMLFormElement;
+  const uploadBtn = document.getElementById("upload-btn") as HTMLButtonElement;
+  const uploadProgress = document.getElementById("upload-progress")!;
+  const grid = document.getElementById("gallery-grid")!;
+
+  function showMessage(text: string, isError: boolean) {
+    messageEl.textContent = text;
+    messageEl.classList.remove("hidden", "bg-green-50", "text-green-700", "bg-red-50", "text-red-700");
+    if (isError) {
+      messageEl.classList.add("bg-red-50", "text-red-700");
+    } else {
+      messageEl.classList.add("bg-green-50", "text-green-700");
+    }
+    if (!isError) {
+      setTimeout(() => messageEl.classList.add("hidden"), 4000);
+    }
+  }
+
+  // Upload
+  uploadForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(uploadForm);
+    const fileInput = uploadForm.querySelector('input[type="file"]') as HTMLInputElement;
+    if (!fileInput.files?.length) return;
+
+    uploadBtn.disabled = true;
+    uploadProgress.classList.remove("hidden");
+
+    try {
+      const res = await fetch("/api/admin/gallery/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        showMessage("Image uploaded successfully.", false);
+        // Reload to show the new image in the grid
+        setTimeout(() => window.location.reload(), 500);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showMessage(data.error || "Failed to upload image.", true);
+      }
+    } catch {
+      showMessage("Network error. Please check your connection.", true);
+    } finally {
+      uploadBtn.disabled = false;
+      uploadProgress.classList.add("hidden");
+    }
+  });
+
+  // Save metadata
+  grid.addEventListener("click", async (e) => {
+    const target = e.target as HTMLElement;
+    const btn = target.closest(".save-meta-btn");
+    if (!btn) return;
+
+    const card = btn.closest(".gallery-card") as HTMLElement;
+    const id = card.dataset.id;
+    const alt = (card.querySelector(".card-alt") as HTMLInputElement).value;
+    const caption = (card.querySelector(".card-caption") as HTMLInputElement).value;
+    const category = (card.querySelector(".card-category") as HTMLSelectElement).value;
+
+    try {
+      const res = await fetch(`/api/admin/gallery/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alt, caption, category }),
+      });
+
+      if (res.ok) {
+        showMessage("Image details updated.", false);
+      } else {
+        showMessage("Failed to update image details.", true);
+      }
+    } catch {
+      showMessage("Network error.", true);
+    }
+  });
+
+  // Delete
+  grid.addEventListener("click", async (e) => {
+    const target = e.target as HTMLElement;
+    const btn = target.closest(".delete-btn");
+    if (!btn) return;
+
+    if (!confirm("Delete this image? This cannot be undone.")) return;
+
+    const card = btn.closest(".gallery-card") as HTMLElement;
+    const id = card.dataset.id;
+
+    try {
+      const res = await fetch(`/api/admin/gallery/${id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        card.remove();
+        showMessage("Image deleted.", false);
+      } else {
+        showMessage("Failed to delete image.", true);
+      }
+    } catch {
+      showMessage("Network error.", true);
+    }
+  });
+</script>
