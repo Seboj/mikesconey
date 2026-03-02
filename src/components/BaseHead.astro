@@ -47,5 +47,19 @@ const pageTitle = title
       addressCountry: "US",
     },
     url: Astro.site ?? Astro.url.origin,
+    servesCuisine: ["American", "Coney Island", "Breakfast"],
+    priceRange: "$",
+    openingHoursSpecification: site.hours
+      .filter((h) => !h.closed)
+      .map((h) => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: h.day,
+        opens: h.open,
+        closes: h.close,
+      })),
+    hasMenu: {
+      "@type": "Menu",
+      url: (Astro.site ?? Astro.url.origin) + "/menu/",
+    },
   })}
 />

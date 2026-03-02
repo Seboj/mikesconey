@@ -42,14 +42,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Contact
 
-- [ ] **CONT-01**: Contact/Location page with embedded Google Map showing restaurant location
-- [ ] **CONT-02**: Address linked to Google Maps directions
-- [ ] **CONT-03**: Hours of operation displayed clearly on contact page
-- [ ] **CONT-04**: Click-to-call phone number on contact page
+- [x] **CONT-01**: Contact/Location page with embedded Google Map showing restaurant location
+- [x] **CONT-02**: Address linked to Google Maps directions
+- [x] **CONT-03**: Hours of operation displayed clearly on contact page
+- [x] **CONT-04**: Click-to-call phone number on contact page
 
 ### FAQ
 
-- [ ] **FAQQ-01**: FAQ section with 5-10 questions targeting common customer queries (hours, parking, takeout, kids menu)
+- [x] **FAQQ-01**: FAQ section with 5-10 questions targeting common customer queries (hours, parking, takeout, kids menu)
 
 ### SEO
 
