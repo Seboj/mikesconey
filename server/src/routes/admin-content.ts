@@ -95,6 +95,16 @@ const gallerySchema = z.array(
   })
 );
 
+const specialsSchema = z.array(
+  z.object({
+    day: z.string().min(1),
+    title: z.string(),
+    description: z.string(),
+    price: z.string().optional(),
+    active: z.boolean(),
+  })
+);
+
 const schemas: Record<string, z.ZodType> = {
   menu: menuSchema,
   hours: hoursSchema,
@@ -102,6 +112,7 @@ const schemas: Record<string, z.ZodType> = {
   reviews: reviewsSchema,
   site_info: siteInfoSchema,
   gallery: gallerySchema,
+  specials: specialsSchema,
 };
 
 // GET /api/admin/content/:key

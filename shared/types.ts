@@ -147,3 +147,13 @@ export interface GalleryImage {
 }
 
 export type GalleryContent = GalleryImage[];
+
+export interface Special {
+  day: string;
+  title: string;
+  description: string;
+  price?: string;
+  active: boolean;
+}
+
+export type SpecialsContent = Special[];

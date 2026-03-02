@@ -3,21 +3,28 @@ export const prerender = false;
 
 import BaseLayout from "../layouts/BaseLayout.astro";
 import HeroSection from "../components/HeroSection.astro";
+import SpecialsBanner from "../components/SpecialsBanner.astro";
 import HoursCard from "../components/HoursCard.astro";
 import AboutTeaser from "../components/AboutTeaser.astro";
 import SocialProof from "../components/SocialProof.astro";
 import { fetchContent } from "../lib/api";
-import type { SiteInfoContent, HoursContent, ReviewsContent } from "../../../shared/types";
+import type { SiteInfoContent, HoursContent, ReviewsContent, SpecialsContent } from "../../../shared/types";
 
-const [siteInfo, hours, reviews] = await Promise.all([
+const [siteInfo, hours, reviews, specials] = await Promise.all([
   fetchContent<SiteInfoContent>("site_info"),
   fetchContent<HoursContent>("hours"),
   fetchContent<ReviewsContent>("reviews"),
+  fetchContent<SpecialsContent>("specials").catch(() => [] as SpecialsContent),
 ]);
+
+const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const todayName = days[new Date().getDay()];
+const todaySpecial = specials.find((s) => s.day === todayName && s.active) ?? null;
 ---
 
 <BaseLayout title="Home" siteInfo={siteInfo} hours={hours}>
   <HeroSection site={siteInfo} />
+  {todaySpecial && <SpecialsBanner special={todaySpecial} />}
   <HoursCard hours={hours} />
   <AboutTeaser site={siteInfo} />
   <SocialProof reviews={reviews} />

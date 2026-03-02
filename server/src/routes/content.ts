@@ -3,7 +3,7 @@ import { getContent } from "../services/content.service.js";
 
 export const contentRouter = Router();
 
-const VALID_KEYS = ["menu", "hours", "faq", "reviews", "site_info", "gallery"];
+const VALID_KEYS = ["menu", "hours", "faq", "reviews", "site_info", "gallery", "specials"];
 
 contentRouter.get("/:key", async (req, res) => {
   const { key } = req.params;

@@ -1,0 +1,315 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../components/admin/AdminLayout.astro";
+
+const apiUrl = import.meta.env.DEV
+  ? (process.env.API_URL || "http://localhost:3000")
+  : "http://api:3000";
+
+const cookie = Astro.request.headers.get("cookie") || "";
+
+interface Special {
+  day: string;
+  title: string;
+  description: string;
+  price?: string;
+  active: boolean;
+}
+
+const defaultSpecials: Special[] = [
+  "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+].map((day) => ({ day, title: "", description: "", price: "", active: false }));
+
+let specials: Special[] = defaultSpecials;
+
+try {
+  const res = await fetch(`${apiUrl}/api/admin/content/specials`, {
+    headers: { cookie },
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      specials = data;
+    }
+  }
+} catch {
+  // Failed to load specials data
+}
+---
+
+<AdminLayout title="Specials" activePage="specials">
+  <div class="mb-6">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Daily Specials</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Manage daily specials and generate Facebook post copy.</p>
+  </div>
+
+  <div class="space-y-4" id="specials-list">
+    {specials.map((special, i) => (
+      <div
+        class="special-row bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        data-index={i}
+      >
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="font-heading font-semibold text-brand-text-heading">{special.day}</span>
+            {special.active && (
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                Active
+              </span>
+            )}
+            {!special.active && (
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                Inactive
+              </span>
+            )}
+          </div>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <span class="text-sm text-brand-text-muted">Active</span>
+            <input
+              type="checkbox"
+              name={`active-${i}`}
+              checked={special.active}
+              class="special-active rounded border-gray-300 text-brand-primary focus:ring-brand-primary/30"
+            />
+          </label>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <input type="hidden" name={`day-${i}`} value={special.day} />
+
+          <div class="grid grid-cols-1 sm:grid-cols-[1fr_140px] gap-4">
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Title</label>
+              <input
+                type="text"
+                name={`title-${i}`}
+                value={special.title}
+                placeholder={`e.g. ${special.day} Madness`}
+                class="special-title w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Price (optional)</label>
+              <input
+                type="text"
+                name={`price-${i}`}
+                value={special.price || ""}
+                placeholder="e.g. $2.49"
+                class="special-price w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Description</label>
+            <textarea
+              name={`description-${i}`}
+              rows="2"
+              placeholder="Describe the special..."
+              class="special-desc w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+            >{special.description}</textarea>
+          </div>
+
+          <!-- Facebook Post Generator -->
+          <div class="border-t border-gray-100 pt-4">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              <span class="text-xs font-medium text-brand-text-muted uppercase tracking-wider">Facebook Post</span>
+            </div>
+            <div class="flex gap-2">
+              <textarea
+                name={`fb-post-${i}`}
+                rows="3"
+                readonly
+                placeholder="Click 'Generate' to create post copy..."
+                class="fb-post flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm text-brand-text-body placeholder:text-brand-text-muted/60 resize-none focus:outline-none"
+              ></textarea>
+              <div class="flex flex-col gap-2">
+                <button
+                  type="button"
+                  class="generate-fb-btn px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                >
+                  Generate
+                </button>
+                <button
+                  type="button"
+                  class="copy-fb-btn px-3 py-2 bg-gray-100 text-brand-text-body text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Save button -->
+  <div id="specials-message" class="hidden mt-4 px-4 py-3 rounded-lg text-sm font-medium"></div>
+
+  <div class="mt-6 flex items-center justify-end gap-3">
+    <button
+      type="button"
+      id="save-btn"
+      class="px-6 py-2.5 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      Save Changes
+    </button>
+  </div>
+</AdminLayout>
+
+<script>
+  const messageEl = document.getElementById("specials-message")!;
+  const saveBtn = document.getElementById("save-btn") as HTMLButtonElement;
+
+  function showMessage(text: string, isError: boolean) {
+    messageEl.textContent = text;
+    messageEl.classList.remove("hidden", "bg-green-50", "text-green-700", "bg-red-50", "text-red-700");
+    if (isError) {
+      messageEl.classList.add("bg-red-50", "text-red-700");
+    } else {
+      messageEl.classList.add("bg-green-50", "text-green-700");
+    }
+    if (!isError) {
+      setTimeout(() => messageEl.classList.add("hidden"), 4000);
+    }
+  }
+
+  function generateFbPost(row: Element): string {
+    const title = (row.querySelector(".special-title") as HTMLInputElement).value.trim();
+    const desc = (row.querySelector(".special-desc") as HTMLTextAreaElement).value.trim();
+    const price = (row.querySelector(".special-price") as HTMLInputElement).value.trim();
+    const day = (row.querySelector("input[type='hidden']") as HTMLInputElement).value;
+
+    if (!title && !desc) return "";
+
+    const lines: string[] = [];
+    lines.push(`🔥 ${title.toUpperCase()} 🔥`);
+    lines.push("");
+    if (price) {
+      lines.push(`💰 ${price}`);
+      lines.push("");
+    }
+    lines.push(desc);
+    lines.push("");
+    lines.push(`📅 Every ${day} at Mike's Coney Island!`);
+    lines.push("📍 15203 N Holly Rd, Holly, MI");
+    lines.push("");
+    lines.push("🏃 Dine in or call ahead: (248) 634-3555");
+    lines.push("");
+    lines.push("#MikesConeyIsland #Holly #Michigan #${day}Special #ConeyIsland #DinerDeals".replace("${day}", day));
+
+    return lines.join("\n");
+  }
+
+  // Generate FB post buttons
+  document.querySelectorAll(".generate-fb-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const row = btn.closest(".special-row")!;
+      const fbTextarea = row.querySelector(".fb-post") as HTMLTextAreaElement;
+      const post = generateFbPost(row);
+      if (post) {
+        fbTextarea.value = post;
+      } else {
+        fbTextarea.value = "";
+        fbTextarea.placeholder = "Fill in the title and description first.";
+      }
+    });
+  });
+
+  // Copy FB post buttons
+  document.querySelectorAll(".copy-fb-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const row = btn.closest(".special-row")!;
+      const fbTextarea = row.querySelector(".fb-post") as HTMLTextAreaElement;
+      const text = fbTextarea.value.trim();
+      if (!text) return;
+
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.textContent;
+        btn.textContent = "Copied!";
+        setTimeout(() => { btn.textContent = original; }, 2000);
+      } catch {
+        // Fallback: select the text
+        fbTextarea.select();
+      }
+    });
+  });
+
+  // Active toggle — update badge
+  document.querySelectorAll(".special-active").forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      const row = checkbox.closest(".special-row")!;
+      const badge = row.querySelector(".px-2.py-0\\.5");
+      if (badge) {
+        const isActive = (checkbox as HTMLInputElement).checked;
+        if (isActive) {
+          badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700";
+          badge.textContent = "Active";
+        } else {
+          badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500";
+          badge.textContent = "Inactive";
+        }
+      }
+    });
+  });
+
+  // Save
+  saveBtn.addEventListener("click", async () => {
+    const rows = document.querySelectorAll(".special-row");
+    const specials: Array<{
+      day: string;
+      title: string;
+      description: string;
+      price?: string;
+      active: boolean;
+    }> = [];
+
+    rows.forEach((row, i) => {
+      const day = (row.querySelector(`input[name="day-${i}"]`) as HTMLInputElement).value;
+      const title = (row.querySelector(`input[name="title-${i}"]`) as HTMLInputElement).value.trim();
+      const description = (row.querySelector(`textarea[name="description-${i}"]`) as HTMLTextAreaElement).value.trim();
+      const price = (row.querySelector(`input[name="price-${i}"]`) as HTMLInputElement).value.trim();
+      const active = (row.querySelector(`input[name="active-${i}"]`) as HTMLInputElement).checked;
+
+      const entry: { day: string; title: string; description: string; price?: string; active: boolean } = {
+        day,
+        title,
+        description,
+        active,
+      };
+      if (price) entry.price = price;
+
+      specials.push(entry);
+    });
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "Saving...";
+
+    try {
+      const res = await fetch("/api/admin/content/specials", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(specials),
+      });
+
+      if (res.ok) {
+        showMessage("Specials updated successfully.", false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showMessage(data.error || "Failed to save specials. Please try again.", true);
+      }
+    } catch {
+      showMessage("Network error. Please check your connection and try again.", true);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Save Changes";
+    }
+  });
+</script>

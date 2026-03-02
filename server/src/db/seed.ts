@@ -210,6 +210,18 @@ async function seed() {
         { id: "people-2", src: "/images/gallery/placeholder-people-2.svg", alt: "Family enjoying breakfast together", category: "people", isPlaceholder: true },
       ],
     },
+    {
+      key: "specials",
+      value: [
+        { day: "Monday", title: "Burger Monday", description: "All burgers $1 off — including our bacon cheeseburger and patty melt!", price: "$1 off", active: true },
+        { day: "Tuesday", title: "Coney Tuesday", description: "All coneys just $2.49 all day! Grab 'em while they're hot.", price: "$2.49", active: true },
+        { day: "Wednesday", title: "Breakfast for Less", description: "Any breakfast plate $1 off — eggs, omelets, pancakes, you name it.", price: "$1 off", active: true },
+        { day: "Thursday", title: "Throwback Thursday", description: "Kids eat free with any adult entree purchase. One kid's meal per adult.", active: true },
+        { day: "Friday", title: "Fish Fry Friday", description: "Golden fried fish basket with fries and coleslaw — a Michigan tradition.", price: "$7.99", active: true },
+        { day: "Saturday", title: "Family Combo Deal", description: "4 coneys, 2 fries, and 4 drinks for just $19.99. Feed the whole crew!", price: "$19.99", active: true },
+        { day: "Sunday", title: "Sunday Brunch Special", description: "Two eggs, hash browns, bacon, toast, and unlimited coffee for one low price.", price: "$6.99", active: true },
+      ],
+    },
   ];
 
   for (const { key, value } of contentSeeds) {
