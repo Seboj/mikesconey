@@ -7,15 +7,15 @@ import type { SiteInfoContent, HoursContent } from "../../../shared/types";
 interface Props {
   title?: string;
   description?: string;
-  siteInfo: SiteInfoContent;
-  hours: HoursContent;
+  siteInfo?: SiteInfoContent;
+  hours?: HoursContent;
 }
 
 const { title, description, siteInfo, hours } = Astro.props;
-const desc = description || siteInfo.seo.description;
-const pageTitle = title
+const desc = description || siteInfo?.seo.description || "";
+const pageTitle = title && siteInfo
   ? siteInfo.seo.titleTemplate.replace("%s", title)
-  : siteInfo.name;
+  : title || siteInfo?.name || "Mike's Coney Island";
 ---
 
 <meta charset="utf-8" />
@@ -23,46 +23,52 @@ const pageTitle = title
 <title>{pageTitle}</title>
 <meta name="description" content={desc} />
 
-<!-- Open Graph -->
-<meta property="og:title" content={pageTitle} />
-<meta property="og:description" content={desc} />
-<meta property="og:image" content={siteInfo.seo.ogImage} />
-<meta property="og:type" content="website" />
+{siteInfo && (
+  <>
+    <!-- Open Graph -->
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:image" content={siteInfo.seo.ogImage} />
+    <meta property="og:type" content="website" />
+  </>
+)}
 
 <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-<!-- JSON-LD Restaurant Schema -->
-<script
-  type="application/ld+json"
-  set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "Restaurant",
-    name: siteInfo.name,
-    description: siteInfo.seo.description,
-    telephone: siteInfo.phone.tel.replace("tel:", ""),
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: siteInfo.address.street,
-      addressLocality: siteInfo.address.city,
-      addressRegion: siteInfo.address.state,
-      postalCode: siteInfo.address.zip,
-      addressCountry: "US",
-    },
-    url: Astro.site ?? Astro.url.origin,
-    servesCuisine: ["American", "Coney Island", "Breakfast"],
-    priceRange: "$",
-    openingHoursSpecification: hours
-      .filter((h) => !h.closed)
-      .map((h) => ({
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: h.day,
-        opens: h.open,
-        closes: h.close,
-      })),
-    hasMenu: {
-      "@type": "Menu",
-      url: (Astro.site ?? Astro.url.origin) + "/menu/",
-    },
-  })}
-/>
+{siteInfo && hours && (
+  <!-- JSON-LD Restaurant Schema -->
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Restaurant",
+      name: siteInfo.name,
+      description: siteInfo.seo.description,
+      telephone: siteInfo.phone.tel.replace("tel:", ""),
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: siteInfo.address.street,
+        addressLocality: siteInfo.address.city,
+        addressRegion: siteInfo.address.state,
+        postalCode: siteInfo.address.zip,
+        addressCountry: "US",
+      },
+      url: Astro.site ?? Astro.url.origin,
+      servesCuisine: ["American", "Coney Island", "Breakfast"],
+      priceRange: "$",
+      openingHoursSpecification: hours
+        .filter((h) => !h.closed)
+        .map((h) => ({
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: h.day,
+          opens: h.open,
+          closes: h.close,
+        })),
+      hasMenu: {
+        "@type": "Menu",
+        url: (Astro.site ?? Astro.url.origin) + "/menu/",
+      },
+    })}
+  />
+)}
