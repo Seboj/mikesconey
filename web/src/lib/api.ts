@@ -1,6 +1,4 @@
-const API_BASE = import.meta.env.DEV
-  ? (process.env.API_URL || "http://localhost:3000")
-  : "http://api:3000";
+const API_BASE = process.env.API_URL || "http://localhost:3000";
 
 export async function fetchContent<T>(key: string): Promise<T> {
   const res = await fetch(`${API_BASE}/api/content/${key}`);

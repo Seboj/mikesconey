@@ -45,7 +45,7 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$WEB_REPO:${{ github.sha }} \
                        -t $ECR_REGISTRY/$WEB_REPO:latest \
-                       -f web/Dockerfile.prod web/
+                       -f web/Dockerfile.prod .
           docker push $ECR_REGISTRY/$WEB_REPO --all-tags
 
       - name: Deploy API to App Runner

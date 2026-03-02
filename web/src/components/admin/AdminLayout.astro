@@ -9,9 +9,7 @@ interface Props {
 const { title, activePage } = Astro.props;
 
 // Check auth by calling the API
-const apiUrl = import.meta.env.DEV
-  ? (process.env.API_URL || "http://localhost:3000")
-  : "http://api:3000";
+const apiUrl = process.env.API_URL || "http://localhost:3000";
 
 let user: { id: string; email: string; name: string } | null = null;
 
