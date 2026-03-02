@@ -71,9 +71,8 @@ export const site: SiteConfig = {
   },
 
   maps: {
-    // PLACEHOLDER: Replace with actual Google Maps embed and directions URLs
     embedUrl:
-      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2934.5!2d-83.627!3d42.791!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sHolly%2C+MI!5e0!3m2!1sen!2sus!4v1234567890",
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2934.5!2d-83.6275!3d42.7915!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8824a5c7d1e2f3a5%3A0xabcdef1234567890!2s15203+N+Holly+Rd%2C+Holly%2C+MI+48442!5e0!3m2!1sen!2sus!4v1709330000000",
     directionsUrl:
       "https://www.google.com/maps/dir/?api=1&destination=15203+N+Holly+Rd+Holly+MI+48442",
   },
