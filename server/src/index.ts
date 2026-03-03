@@ -11,6 +11,7 @@ import { dashboardRouter } from "./routes/dashboard.js";
 import { contentRouter } from "./routes/content.js";
 import { adminContentRouter } from "./routes/admin-content.js";
 import { adminGalleryRouter } from "./routes/admin-gallery.js";
+import { askMikeRouter } from "./routes/ask-mike.js";
 import { authMiddleware } from "./middleware/auth.js";
 
 const app = express();
@@ -56,6 +57,7 @@ app.use("/api", healthRouter);
 app.use("/api/customers", customersRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/content", contentRouter);
+app.use("/api/ask-mike", askMikeRouter);
 app.use("/api/admin", authMiddleware, dashboardRouter);
 app.use("/api/admin", authMiddleware, adminContentRouter);
 app.use("/api/admin", authMiddleware, adminGalleryRouter);
