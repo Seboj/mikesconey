@@ -6,7 +6,8 @@ import postgres from "postgres";
 const connectionString = process.env.DATABASE_URL!;
 
 async function runMigrations() {
-  const client = postgres(connectionString, { max: 1 });
+  const isProd = process.env.NODE_ENV === "production";
+  const client = postgres(connectionString, { max: 1, ssl: isProd ? "require" : false });
   const db = drizzle(client);
 
   console.log("Running migrations...");

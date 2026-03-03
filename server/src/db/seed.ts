@@ -8,7 +8,8 @@ import { eq } from "drizzle-orm";
 const connectionString = process.env.DATABASE_URL!;
 
 async function seed() {
-  const client = postgres(connectionString, { max: 1 });
+  const isProd = process.env.NODE_ENV === "production";
+  const client = postgres(connectionString, { max: 1, ssl: isProd ? "require" : false });
   const db = drizzle(client);
 
   // Seed admin user
