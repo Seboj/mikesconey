@@ -3,12 +3,16 @@ export const prerender = false;
 
 import BaseHead from "../components/BaseHead.astro";
 import { fetchContent } from "../lib/api";
-import type { SiteInfoContent } from "../../../shared/types";
+import type { SiteInfoContent, HoursContent } from "../../../shared/types";
 
 let siteInfo: SiteInfoContent | null = null;
+let hours: HoursContent | null = null;
 
 try {
-  siteInfo = await fetchContent<SiteInfoContent>("site_info");
+  [siteInfo, hours] = await Promise.all([
+    fetchContent<SiteInfoContent>("site_info"),
+    fetchContent<HoursContent>("hours"),
+  ]);
 } catch {
   // Use fallback values
 }
@@ -77,6 +81,23 @@ const social = siteInfo?.social;
           </a>
         )}
       </div>
+
+      <!-- Hours -->
+      {hours && hours.length > 0 && (
+        <div class="mb-10">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-brand-primary-light mb-4">Hours</h2>
+          <div class="space-y-1.5 text-sm">
+            {hours.map((h) => (
+              <div class="flex justify-between max-w-xs mx-auto">
+                <span class="text-brand-text-light/70">{h.day}</span>
+                <span class="text-white font-medium">
+                  {h.closed ? "Closed" : `${h.open} – ${h.close}`}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <!-- Social links -->
       {social && (
