@@ -12,18 +12,18 @@ function getStars(count: number): number[] {
 }
 ---
 
-<section class="py-16 md:py-20 px-4 md:px-8 bg-brand-accent/40 bg-texture-warm">
+<section class="py-16 md:py-20 px-4 md:px-8 bg-texture-warm">
   <div class="mx-auto max-w-5xl">
     <!-- Section header -->
     <div class="text-center mb-10">
-      <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
+      <span class="section-accent mx-auto mb-4"></span>
       <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand-text-heading mb-4">
         What Our Customers Say
       </h2>
 
       <!-- Overall Google rating badge -->
-      <div class="inline-flex items-center gap-3 bg-white rounded-full px-5 py-2.5 shadow-sm border border-brand-divider/50">
-        <span class="font-bold text-brand-text-heading text-sm">Google</span>
+      <div class="inline-flex items-center gap-3 bg-brand-dark rounded-full px-5 py-2.5 border border-stone-800">
+        <span class="font-bold text-brand-cream text-sm">Google</span>
         <div class="flex items-center gap-0.5">
           {
             getStars(5).map(() => (
@@ -37,8 +37,8 @@ function getStars(count: number): number[] {
             ))
           }
         </div>
-        <span class="font-bold text-brand-text-heading">{reviews.overallRating}</span>
-        <span class="text-brand-text-muted text-sm">({reviews.reviewCount} reviews)</span>
+        <span class="font-bold text-brand-cream">{reviews.overallRating}</span>
+        <span class="text-stone-400 text-sm">({reviews.reviewCount} reviews)</span>
       </div>
     </div>
 
@@ -46,7 +46,7 @@ function getStars(count: number): number[] {
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {
         reviews.reviews.map((review) => (
-          <div class="bg-white rounded-xl p-6 shadow-sm border border-brand-divider/50">
+          <div class="card-warm p-6">
             {/* Opening quote mark */}
             <span class="text-4xl text-brand-primary/20 font-serif leading-none block mb-2">
               &ldquo;
@@ -71,7 +71,7 @@ function getStars(count: number): number[] {
             </div>
 
             {/* Author */}
-            <p class="text-brand-text-muted text-sm font-medium">
+            <p class="text-brand-secondary text-sm font-semibold">
               &mdash; {review.author}
             </p>
           </div>

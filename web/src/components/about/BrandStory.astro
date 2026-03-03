@@ -37,9 +37,10 @@ const { site } = Astro.props;
     </div>
 
     <!-- Restaurant photo placeholder -->
-    <div class="mt-10 aspect-[16/9] bg-brand-accent rounded-xl overflow-hidden flex flex-col items-center justify-center border-2 border-brand-primary/10">
+    <div class="mt-10 aspect-[16/9] bg-brand-dark rounded-xl overflow-hidden flex flex-col items-center justify-center border border-stone-800 relative">
+      <div class="absolute top-0 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-brand-secondary/30 to-transparent"></div>
       <svg
-        class="w-16 h-16 text-brand-primary/20"
+        class="w-16 h-16 text-brand-secondary/20"
         fill="none"
         stroke="currentColor"
         stroke-width="1.5"
@@ -51,7 +52,7 @@ const { site } = Astro.props;
           d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21z"
         />
       </svg>
-      <p class="text-brand-primary/40 text-sm mt-3 font-medium">
+      <p class="text-stone-500 text-sm mt-3 font-medium">
         Restaurant photo coming soon
       </p>
     </div>

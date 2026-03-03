@@ -10,33 +10,34 @@ const { site, hours } = Astro.props;
 const currentYear = new Date().getFullYear();
 ---
 
-<footer class="bg-brand-dark text-brand-text-light">
-  <div class="mx-auto max-w-7xl px-4 md:px-8 py-12">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<footer class="bg-brand-dark-deeper text-stone-400">
+  <!-- Gradient stripe at top -->
+  <div class="h-1 bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-primary"></div>
+
+  <div class="mx-auto max-w-7xl px-4 md:px-8 py-12 md:py-16">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
       <!-- Column 1: Location & Hours -->
       <div>
-        <h3 class="font-heading font-bold text-lg text-brand-text-light mb-4">
+        <h3 class="font-display text-brand-primary text-lg mb-5 text-neon-red">
           {site.name}
         </h3>
-        <address class="not-italic text-sm text-brand-text-light/70 mb-4">
-          <p>{site.address.street}</p>
-          <p>
+        <address class="not-italic text-sm space-y-1 mb-6">
+          <p class="text-stone-400">{site.address.street}</p>
+          <p class="text-stone-400">
             {site.address.city}, {site.address.state} {site.address.zip}
           </p>
         </address>
 
-        <h4
-          class="font-heading font-semibold text-sm text-brand-text-light/90 mb-2"
-        >
+        <h4 class="text-xs font-bold tracking-[0.18em] uppercase text-brand-secondary mb-3">
           Hours
         </h4>
-        <ul class="text-sm text-brand-text-light/70 space-y-1">
+        <ul class="text-sm space-y-1.5">
           {
             hours.map((h) => (
               <li class="flex justify-between max-w-[220px]">
-                <span>{h.day}</span>
-                <span>
-                  {h.closed ? "Closed" : `${h.open} – ${h.close}`}
+                <span class="text-stone-500">{h.day}</span>
+                <span class={h.closed ? "text-brand-primary font-medium" : "text-stone-300 font-medium"}>
+                  {h.closed ? "Closed" : `${h.open} \u2013 ${h.close}`}
                 </span>
               </li>
             ))
@@ -46,11 +47,9 @@ const currentYear = new Date().getFullYear();
 
       <!-- Column 2: Quick Links -->
       <div>
-        <h3
-          class="font-heading font-bold text-lg text-brand-text-light mb-4"
-        >
+        <h4 class="text-xs font-bold tracking-[0.18em] uppercase text-brand-secondary mb-5">
           Quick Links
-        </h3>
+        </h4>
         <nav aria-label="Footer navigation">
           <ul class="space-y-1">
             {
@@ -64,7 +63,7 @@ const currentYear = new Date().getFullYear();
                 <li>
                   <a
                     href={link.href}
-                    class="inline-block py-2 text-sm text-brand-text-light/70 hover:text-brand-secondary transition-colors"
+                    class="inline-block py-2 text-sm text-stone-400 hover:text-brand-cream transition-colors"
                   >
                     {link.label}
                   </a>
@@ -77,19 +76,17 @@ const currentYear = new Date().getFullYear();
 
       <!-- Column 3: Connect -->
       <div>
-        <h3
-          class="font-heading font-bold text-lg text-brand-text-light mb-4"
-        >
+        <h4 class="text-xs font-bold tracking-[0.18em] uppercase text-brand-secondary mb-5">
           Connect
-        </h3>
+        </h4>
 
         <!-- Phone -->
         <a
           href={site.phone.tel}
-          class="flex items-center gap-2 py-2 text-sm text-brand-secondary hover:text-brand-secondary-light transition-colors"
+          class="flex items-center gap-2.5 py-2.5 text-sm font-semibold text-brand-cream hover:text-brand-secondary transition-colors"
         >
           <svg
-            class="w-5 h-5"
+            class="w-5 h-5 text-brand-secondary"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
@@ -109,7 +106,7 @@ const currentYear = new Date().getFullYear();
           href={site.social.instagram}
           target="_blank"
           rel="noopener noreferrer"
-          class="flex items-center gap-2 py-2 text-sm text-brand-text-light/70 hover:text-brand-secondary transition-colors"
+          class="flex items-center gap-2.5 py-2.5 text-sm text-stone-400 hover:text-brand-secondary transition-colors"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path
@@ -124,7 +121,7 @@ const currentYear = new Date().getFullYear();
           href={site.social.facebook}
           target="_blank"
           rel="noopener noreferrer"
-          class="flex items-center gap-2 py-2 text-sm text-brand-text-light/70 hover:text-brand-secondary transition-colors"
+          class="flex items-center gap-2.5 py-2.5 text-sm text-stone-400 hover:text-brand-secondary transition-colors"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path
@@ -138,9 +135,9 @@ const currentYear = new Date().getFullYear();
   </div>
 
   <!-- Bottom bar -->
-  <div class="border-t border-brand-divider/20">
+  <div class="border-t border-stone-800">
     <div
-      class="mx-auto max-w-7xl px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-brand-text-light/50"
+      class="mx-auto max-w-7xl px-4 md:px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-stone-600"
     >
       <span>{site.name} &middot; Holly, Michigan</span>
       <span>&copy; {currentYear} {site.name}. All rights reserved.</span>

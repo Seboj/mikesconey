@@ -46,10 +46,10 @@ try {
   <div class="space-y-4" id="specials-list">
     {specials.map((special, i) => (
       <div
-        class="special-row bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+        class="special-row bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden"
         data-index={i}
       >
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="font-heading font-semibold text-brand-text-heading">{special.day}</span>
             {special.active && (
@@ -58,7 +58,7 @@ try {
               </span>
             )}
             {!special.active && (
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-500">
                 Inactive
               </span>
             )}
@@ -69,7 +69,7 @@ try {
               type="checkbox"
               name={`active-${i}`}
               checked={special.active}
-              class="special-active rounded border-gray-300 text-brand-primary focus:ring-brand-primary/30"
+              class="special-active rounded border-stone-300 text-brand-primary focus:ring-brand-primary/30"
             />
           </label>
         </div>
@@ -85,7 +85,7 @@ try {
                 name={`title-${i}`}
                 value={special.title}
                 placeholder={`e.g. ${special.day} Madness`}
-                class="special-title w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+                class="special-title w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
               />
             </div>
             <div>
@@ -95,7 +95,7 @@ try {
                 name={`price-${i}`}
                 value={special.price || ""}
                 placeholder="e.g. $2.49"
-                class="special-price w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+                class="special-price w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
               />
             </div>
           </div>
@@ -106,12 +106,12 @@ try {
               name={`description-${i}`}
               rows="2"
               placeholder="Describe the special..."
-              class="special-desc w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+              class="special-desc w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
             >{special.description}</textarea>
           </div>
 
           <!-- Facebook Post Generator -->
-          <div class="border-t border-gray-100 pt-4">
+          <div class="border-t border-stone-200 pt-4">
             <div class="flex items-center gap-2 mb-2">
               <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -124,7 +124,7 @@ try {
                 rows="3"
                 readonly
                 placeholder="Click 'Generate' to create post copy..."
-                class="fb-post flex-1 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm text-brand-text-body placeholder:text-brand-text-muted/60 resize-none focus:outline-none"
+                class="fb-post flex-1 px-3 py-2 rounded-lg border border-stone-200 bg-stone-50 text-sm text-brand-text-body placeholder:text-brand-text-muted/60 resize-none focus:outline-none"
               ></textarea>
               <div class="flex flex-col gap-2">
                 <button
@@ -135,7 +135,7 @@ try {
                 </button>
                 <button
                   type="button"
-                  class="copy-fb-btn px-3 py-2 bg-gray-100 text-brand-text-body text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap"
+                  class="copy-fb-btn px-3 py-2 bg-stone-100 text-brand-text-body text-xs font-medium rounded-lg hover:bg-stone-200 transition-colors whitespace-nowrap"
                 >
                   Copy
                 </button>
@@ -251,7 +251,7 @@ try {
           badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700";
           badge.textContent = "Active";
         } else {
-          badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500";
+          badge.className = "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-500";
           badge.textContent = "Inactive";
         }
       }

@@ -13,7 +13,7 @@ const { site } = Astro.props;
     <div class="grid md:grid-cols-5 gap-8 md:gap-12 items-center">
       <!-- Text content -->
       <div class="md:col-span-3">
-        <div class="w-12 h-1 bg-brand-primary rounded-full mb-4"></div>
+        <span class="section-accent mb-4"></span>
         <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand-text-heading mb-6">
           A Holly Tradition
         </h2>
@@ -29,7 +29,7 @@ const { site } = Astro.props;
         </p>
         <a
           href="/about/"
-          class="inline-flex items-center gap-2 text-brand-primary font-medium hover:text-brand-primary-light transition-colors"
+          class="inline-flex items-center gap-2 text-brand-primary font-bold hover:text-brand-primary-light transition-colors"
         >
           Read Our Story
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -40,16 +40,23 @@ const { site } = Astro.props;
 
       <!-- Decorative accent block -->
       <div class="md:col-span-2">
-        <div class="bg-brand-accent rounded-2xl p-8 md:p-10 bg-texture-warm text-center">
-          <svg class="w-16 h-16 mx-auto text-brand-primary/20 mb-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
-          </svg>
-          <p class="font-heading text-brand-secondary text-lg font-bold mb-2">
-            {site.since}
-          </p>
-          <p class="text-brand-text-muted text-sm">
-            {site.address.city}, {site.address.state}
-          </p>
+        <div class="relative bg-brand-dark rounded-2xl p-8 md:p-10 text-center overflow-hidden">
+          <!-- Grain overlay -->
+          <div class="absolute inset-0 opacity-[0.04] pointer-events-none" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+          <!-- Warm glow -->
+          <div class="absolute top-0 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-brand-secondary to-transparent"></div>
+
+          <div class="relative">
+            <svg class="w-12 h-12 mx-auto text-brand-secondary/30 mb-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+            </svg>
+            <p class="font-display text-brand-secondary text-xl mb-2">
+              {site.since}
+            </p>
+            <p class="text-stone-400 text-sm">
+              {site.address.city}, {site.address.state}
+            </p>
+          </div>
         </div>
       </div>
     </div>

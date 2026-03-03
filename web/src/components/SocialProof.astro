@@ -12,12 +12,17 @@ function getStars(count: number): number[] {
 }
 ---
 
-<section class="py-16 md:py-20 px-4 md:px-8 bg-brand-accent/40 bg-texture-warm">
-  <div class="mx-auto max-w-5xl">
+<section class="py-16 md:py-20 px-4 md:px-8 bg-brand-dark-deeper relative overflow-hidden">
+  <!-- Ambient glow -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[100%] h-[50%] bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.04)_0%,transparent_70%)] pointer-events-none"></div>
+  <!-- Grain -->
+  <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+
+  <div class="relative z-10 mx-auto max-w-5xl">
     <!-- Section header -->
     <div class="text-center mb-10">
-      <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
-      <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand-text-heading mb-3">
+      <span class="section-accent mx-auto mb-4"></span>
+      <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand-cream mb-3">
         What Our Customers Say
       </h2>
 
@@ -30,15 +35,18 @@ function getStars(count: number): number[] {
             </svg>
           ))}
         </div>
-        <span class="font-bold text-brand-text-heading">{reviews.overallRating}</span>
-        <span class="text-brand-text-muted text-sm">({reviews.reviewCount} reviews)</span>
+        <span class="font-bold text-brand-cream">{reviews.overallRating}</span>
+        <span class="text-stone-500 text-sm">({reviews.reviewCount} reviews)</span>
       </div>
     </div>
 
     <!-- Reviews grid -->
     <div class="grid md:grid-cols-3 gap-6">
       {reviews.reviews.slice(0, 3).map((review) => (
-        <div class="bg-white rounded-xl p-6 shadow-sm border border-brand-divider/50">
+        <div class="bg-brand-dark rounded-xl p-6 border border-stone-800 relative overflow-hidden">
+          <!-- Subtle accent line at top -->
+          <div class="absolute top-0 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-brand-secondary/30 to-transparent"></div>
+
           <!-- Stars -->
           <div class="flex items-center gap-0.5 mb-3">
             {getStars(review.rating).map(() => (
@@ -49,12 +57,12 @@ function getStars(count: number): number[] {
           </div>
 
           <!-- Quote -->
-          <p class="text-brand-text-body text-sm md:text-base leading-relaxed mb-4">
+          <p class="text-stone-300 text-sm md:text-base leading-relaxed mb-4">
             &ldquo;{review.text}&rdquo;
           </p>
 
           <!-- Author -->
-          <p class="text-brand-text-muted text-sm font-medium">
+          <p class="text-brand-secondary text-sm font-semibold">
             &mdash; {review.author}
           </p>
         </div>
@@ -65,7 +73,7 @@ function getStars(count: number): number[] {
     <div class="text-center mt-8">
       <a
         href="#"
-        class="text-brand-text-muted text-sm hover:text-brand-primary transition-colors"
+        class="text-stone-500 text-sm hover:text-brand-secondary transition-colors"
       >
         See all reviews on Google
       </a>

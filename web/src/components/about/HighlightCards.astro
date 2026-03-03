@@ -21,12 +21,14 @@ const highlights = [
 ];
 ---
 
-<section class="py-16 md:py-20 px-4 md:px-8 bg-brand-light">
-  <div class="mx-auto max-w-4xl">
+<section class="py-16 md:py-20 px-4 md:px-8 bg-brand-dark-deeper relative overflow-hidden">
+  <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+
+  <div class="relative z-10 mx-auto max-w-4xl">
     <!-- Section header -->
     <div class="text-center mb-10">
-      <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
-      <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand-text-heading">
+      <span class="section-accent mx-auto mb-4"></span>
+      <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand-cream">
         What Brings People Back
       </h2>
     </div>
@@ -34,9 +36,11 @@ const highlights = [
     <div class="grid md:grid-cols-3 gap-6 mt-10">
       {
         highlights.map((item) => (
-          <div class="bg-white rounded-xl p-6 shadow-sm border border-brand-divider/50 text-center">
+          <div class="bg-brand-dark rounded-xl p-6 border border-stone-800 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-[15%] right-[15%] h-px bg-gradient-to-r from-transparent via-brand-secondary/30 to-transparent"></div>
+
             {/* Icon */}
-            <div class="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-brand-accent">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-brand-primary/10 border border-brand-primary/20">
               {item.icon === "coney" && (
                 <svg
                   class="w-6 h-6 text-brand-primary"
@@ -84,10 +88,10 @@ const highlights = [
               )}
             </div>
 
-            <h3 class="font-heading font-bold text-lg text-brand-text-heading mt-4">
+            <h3 class="font-heading font-bold text-lg text-brand-cream mt-4">
               {item.title}
             </h3>
-            <p class="text-brand-text-body text-sm mt-2 leading-relaxed">
+            <p class="text-stone-400 text-sm mt-2 leading-relaxed">
               {item.description}
             </p>
           </div>

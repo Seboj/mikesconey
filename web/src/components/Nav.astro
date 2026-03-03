@@ -30,13 +30,13 @@ function isActive(href: string): boolean {
   Skip to content
 </a>
 
-<header class="sticky top-0 z-50 bg-brand-dark text-brand-text-light">
+<header class="sticky top-0 z-50 bg-brand-dark-deeper">
   <nav class="mx-auto max-w-7xl px-4 md:px-8" aria-label="Main navigation">
     <div class="flex h-16 items-center justify-between">
-      <!-- Restaurant name -->
+      <!-- Restaurant name in Permanent Marker -->
       <a
         href="/"
-        class="font-heading text-lg font-bold tracking-tight hover:text-brand-secondary transition-colors"
+        class="font-display text-xl tracking-tight text-brand-primary hover:text-brand-primary-light transition-colors text-neon-red animate-flicker"
       >
         {site.name}
       </a>
@@ -48,10 +48,10 @@ function isActive(href: string): boolean {
             <a
               href={link.href}
               class:list={[
-                "px-3 py-2 text-sm font-medium rounded transition-colors",
+                "px-3 py-2 text-sm font-semibold tracking-wide uppercase rounded transition-all duration-200",
                 isActive(link.href)
-                  ? "text-brand-secondary border-b-2 border-brand-secondary"
-                  : "text-brand-text-light/80 hover:text-brand-text-light hover:bg-white/10",
+                  ? "text-brand-secondary text-neon-amber"
+                  : "text-stone-400 hover:text-brand-cream hover:bg-white/5",
               ]}
               aria-current={isActive(link.href) ? "page" : undefined}
             >
@@ -63,18 +63,21 @@ function isActive(href: string): boolean {
         <!-- Desktop phone number -->
         <a
           href={site.phone.tel}
-          class="ml-4 px-3 py-2 text-sm font-medium text-brand-secondary hover:text-brand-secondary-light transition-colors"
+          class="ml-4 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-brand-dark-deeper bg-brand-secondary rounded hover:bg-brand-secondary-light transition-colors"
         >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+          </svg>
           {site.phone.display}
         </a>
 
         <!-- Social icons (desktop) -->
-        <div class="flex items-center gap-1 ml-2 border-l border-white/10 pl-3">
+        <div class="flex items-center gap-1 ml-2 border-l border-stone-700 pl-3">
           <a
             href={site.social.instagram}
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center justify-center w-8 h-8 rounded text-brand-text-light/60 hover:text-brand-secondary transition-colors"
+            class="flex items-center justify-center w-8 h-8 rounded text-stone-500 hover:text-brand-secondary transition-colors"
             aria-label="Follow us on Instagram"
           >
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -85,7 +88,7 @@ function isActive(href: string): boolean {
             href={site.social.facebook}
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center justify-center w-8 h-8 rounded text-brand-text-light/60 hover:text-brand-secondary transition-colors"
+            class="flex items-center justify-center w-8 h-8 rounded text-stone-500 hover:text-brand-secondary transition-colors"
             aria-label="Follow us on Facebook"
           >
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -99,7 +102,7 @@ function isActive(href: string): boolean {
       <button
         id="menu-toggle"
         type="button"
-        class="md:hidden flex items-center justify-center w-11 h-11 rounded text-brand-text-light/80 hover:text-brand-text-light hover:bg-white/10 transition-colors"
+        class="md:hidden flex items-center justify-center w-11 h-11 rounded text-stone-400 hover:text-brand-cream hover:bg-white/5 transition-colors"
         aria-label="Toggle menu"
         aria-expanded="false"
         aria-controls="mobile-menu"
@@ -120,23 +123,23 @@ function isActive(href: string): boolean {
     </div>
   </nav>
 
-  <!-- Accent stripe -->
-  <div class="h-1 bg-brand-primary"></div>
+  <!-- Accent stripe — red to amber gradient -->
+  <div class="h-1 bg-gradient-to-r from-brand-primary via-brand-primary to-brand-secondary"></div>
 
   <!-- Mobile slide-in menu -->
   <div
     id="mobile-menu"
-    class="fixed inset-y-0 right-0 z-50 w-72 bg-brand-dark transform translate-x-full transition-transform duration-300 ease-in-out md:hidden"
+    class="fixed inset-y-0 right-0 z-50 w-72 bg-brand-dark-deeper transform translate-x-full transition-transform duration-300 ease-in-out md:hidden"
     aria-label="Mobile navigation"
   >
-    <div class="flex items-center justify-between px-4 h-16 border-b border-white/10">
-      <span class="font-heading font-bold text-brand-text-light">
+    <div class="flex items-center justify-between px-4 h-16 border-b border-stone-800">
+      <span class="font-display text-brand-primary text-neon-red">
         {site.name}
       </span>
       <button
         id="menu-close"
         type="button"
-        class="flex items-center justify-center w-11 h-11 rounded text-brand-text-light/80 hover:text-brand-text-light hover:bg-white/10 transition-colors"
+        class="flex items-center justify-center w-11 h-11 rounded text-stone-400 hover:text-brand-cream hover:bg-white/5 transition-colors"
         aria-label="Close menu"
       >
         <svg
@@ -160,10 +163,10 @@ function isActive(href: string): boolean {
           <a
             href={link.href}
             class:list={[
-              "px-3 py-3 text-base font-medium rounded transition-colors",
+              "px-3 py-3 text-sm font-semibold uppercase tracking-wide rounded transition-colors",
               isActive(link.href)
-                ? "text-brand-secondary bg-white/5"
-                : "text-brand-text-light/80 hover:text-brand-text-light hover:bg-white/10",
+                ? "text-brand-secondary bg-brand-secondary/10"
+                : "text-stone-400 hover:text-brand-cream hover:bg-white/5",
             ]}
             aria-current={isActive(link.href) ? "page" : undefined}
           >
@@ -173,10 +176,10 @@ function isActive(href: string): boolean {
       }
 
       <!-- Mobile phone number -->
-      <div class="mt-4 pt-4 border-t border-white/10">
+      <div class="mt-4 pt-4 border-t border-stone-800">
         <a
           href={site.phone.tel}
-          class="flex items-center gap-2 px-3 py-3 text-base font-medium text-brand-secondary hover:text-brand-secondary-light transition-colors"
+          class="flex items-center gap-2 px-3 py-3 text-base font-bold text-brand-secondary hover:text-brand-secondary-light transition-colors"
         >
           <svg
             class="w-5 h-5"
@@ -200,7 +203,7 @@ function isActive(href: string): boolean {
             href={site.social.instagram}
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2 text-sm text-brand-text-light/60 hover:text-brand-secondary transition-colors"
+            class="flex items-center gap-2 text-sm text-stone-500 hover:text-brand-secondary transition-colors"
             aria-label="Follow us on Instagram"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -212,7 +215,7 @@ function isActive(href: string): boolean {
             href={site.social.facebook}
             target="_blank"
             rel="noopener noreferrer"
-            class="flex items-center gap-2 text-sm text-brand-text-light/60 hover:text-brand-secondary transition-colors"
+            class="flex items-center gap-2 text-sm text-stone-500 hover:text-brand-secondary transition-colors"
             aria-label="Follow us on Facebook"
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

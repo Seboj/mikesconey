@@ -17,7 +17,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
   </div>
 
   <!-- Overall Rating & Review Count -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6">
     <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Summary Info</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
@@ -29,7 +29,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
           min="0"
           max="5"
           value={reviewsData.overallRating}
-          class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
         />
         <p class="text-xs text-brand-text-muted mt-1">Displayed rating (0 - 5, e.g. 4.8)</p>
       </div>
@@ -41,7 +41,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
           step="1"
           min="0"
           value={reviewsData.reviewCount}
-          class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+          class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
         />
         <p class="text-xs text-brand-text-muted mt-1">Total number of reviews to display</p>
       </div>
@@ -49,7 +49,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
   </div>
 
   <!-- Reviews List -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="font-heading font-semibold text-brand-text-heading">Individual Reviews</h2>
       <button
@@ -66,7 +66,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
 
     <div id="reviews-list" class="space-y-4">
       {reviewsData.reviews.map((review: any, idx: number) => (
-        <div class="review-card border border-gray-200 rounded-lg p-4" data-index={idx}>
+        <div class="review-card border border-stone-200 rounded-lg p-4" data-index={idx}>
           <div class="flex items-start justify-between mb-3">
             <span class="text-xs font-medium text-brand-text-muted uppercase tracking-wider">Review #{idx + 1}</span>
             <button
@@ -84,14 +84,14 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
               <label class="block text-sm font-medium text-brand-text-body mb-1">Author Name</label>
               <input
                 type="text"
-                class="review-author w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+                class="review-author w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
                 value={review.author}
                 placeholder="Customer name"
               />
             </div>
             <div>
               <label class="block text-sm font-medium text-brand-text-body mb-1">Rating</label>
-              <select class="review-rating w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors">
+              <select class="review-rating w-full px-3 py-2 rounded-lg border border-stone-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors">
                 <option value="5" selected={review.rating === 5}>5 Stars</option>
                 <option value="4" selected={review.rating === 4}>4 Stars</option>
                 <option value="3" selected={review.rating === 3}>3 Stars</option>
@@ -103,7 +103,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
           <div>
             <label class="block text-sm font-medium text-brand-text-body mb-1">Review Text</label>
             <textarea
-              class="review-text w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+              class="review-text w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
               rows="3"
               placeholder="What the customer said..."
             >{review.text}</textarea>
@@ -149,7 +149,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
 
   function createReviewCard(index: number, author = "", rating = 5, text = ""): HTMLDivElement {
     const card = document.createElement("div");
-    card.className = "review-card border border-gray-200 rounded-lg p-4";
+    card.className = "review-card border border-stone-200 rounded-lg p-4";
     card.dataset.index = String(index);
 
     card.innerHTML = `
@@ -170,14 +170,14 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
           <label class="block text-sm font-medium text-brand-text-body mb-1">Author Name</label>
           <input
             type="text"
-            class="review-author w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            class="review-author w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
             value="${author.replace(/"/g, "&quot;")}"
             placeholder="Customer name"
           />
         </div>
         <div>
           <label class="block text-sm font-medium text-brand-text-body mb-1">Rating</label>
-          <select class="review-rating w-full px-3 py-2 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors">
+          <select class="review-rating w-full px-3 py-2 rounded-lg border border-stone-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors">
             <option value="5"${rating === 5 ? " selected" : ""}>5 Stars</option>
             <option value="4"${rating === 4 ? " selected" : ""}>4 Stars</option>
             <option value="3"${rating === 3 ? " selected" : ""}>3 Stars</option>
@@ -189,7 +189,7 @@ const reviewsData = res.ok ? await res.json() : { overallRating: 0, reviewCount:
       <div>
         <label class="block text-sm font-medium text-brand-text-body mb-1">Review Text</label>
         <textarea
-          class="review-text w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
+          class="review-text w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors resize-none"
           rows="3"
           placeholder="What the customer said..."
         >${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</textarea>

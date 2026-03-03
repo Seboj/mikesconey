@@ -41,7 +41,7 @@ try {
   </div>
 
   <!-- Upload section -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6">
     <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Add Image</h2>
     <form id="upload-form" class="space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -52,14 +52,14 @@ try {
             name="image"
             accept="image/*"
             required
-            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
           />
         </div>
         <div>
           <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Category</label>
           <select
             name="category"
-            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
           >
             <option value="food">Food</option>
             <option value="atmosphere">Atmosphere</option>
@@ -74,7 +74,7 @@ try {
             type="text"
             name="alt"
             placeholder="Describe the image..."
-            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
           />
         </div>
         <div>
@@ -83,7 +83,7 @@ try {
             type="text"
             name="caption"
             placeholder="Optional caption..."
-            class="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+            class="w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
           />
         </div>
       </div>
@@ -112,10 +112,10 @@ try {
   <!-- Image grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="gallery-grid">
     {images.map((image) => (
-      <div class="gallery-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-id={image.id}>
-        <div class="relative aspect-[4/3] bg-gray-100">
+      <div class="gallery-card bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden" data-id={image.id}>
+        <div class="relative aspect-[4/3] bg-stone-100">
           {image.isPlaceholder ? (
-            <div class="w-full h-full flex items-center justify-center bg-gray-50">
+            <div class="w-full h-full flex items-center justify-center bg-stone-50">
               <img src={image.src} alt={image.alt} class="w-20 h-20 opacity-40" />
             </div>
           ) : (
@@ -140,7 +140,7 @@ try {
             <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Alt Text</label>
             <input
               type="text"
-              class="card-alt w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              class="card-alt w-full px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
               value={image.alt}
               placeholder="Alt text..."
             />
@@ -149,7 +149,7 @@ try {
             <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Caption</label>
             <input
               type="text"
-              class="card-caption w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              class="card-caption w-full px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
               value={image.caption || ""}
               placeholder="Caption..."
             />
@@ -157,7 +157,7 @@ try {
           <div>
             <label class="block text-xs font-medium text-brand-text-muted uppercase tracking-wider mb-1">Category</label>
             <select
-              class="card-category w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              class="card-category w-full px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
             >
               <option value="food" selected={image.category === "food"}>Food</option>
               <option value="atmosphere" selected={image.category === "atmosphere"}>Atmosphere</option>

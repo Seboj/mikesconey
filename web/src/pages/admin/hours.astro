@@ -48,8 +48,8 @@ try {
     <p class="text-sm text-brand-text-muted mt-1">Manage your restaurant's weekly operating hours.</p>
   </div>
 
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100">
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-stone-200">
       <h2 class="font-heading font-semibold text-brand-text-heading">Weekly Schedule</h2>
     </div>
 
@@ -65,7 +65,7 @@ try {
       <div class="space-y-3">
         {hours.map((entry, i) => (
           <div
-            class="hours-row grid grid-cols-1 sm:grid-cols-[160px_1fr_1fr_100px] gap-3 sm:gap-4 items-center p-4 sm:p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors"
+            class="hours-row grid grid-cols-1 sm:grid-cols-[160px_1fr_1fr_100px] gap-3 sm:gap-4 items-center p-4 sm:p-3 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-50 transition-colors"
             data-index={i}
           >
             <div class="flex items-center gap-3 sm:gap-0">
@@ -85,8 +85,8 @@ try {
                 placeholder="e.g. 10:00 AM"
                 disabled={entry.closed}
                 class:list={[
-                  "hours-open w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors",
-                  entry.closed && "opacity-50 bg-gray-100 cursor-not-allowed",
+                  "hours-open w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors",
+                  entry.closed && "opacity-50 bg-stone-100 cursor-not-allowed",
                 ]}
               />
             </div>
@@ -100,8 +100,8 @@ try {
                 placeholder="e.g. 9:00 PM"
                 disabled={entry.closed}
                 class:list={[
-                  "hours-close w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors",
-                  entry.closed && "opacity-50 bg-gray-100 cursor-not-allowed",
+                  "hours-close w-full px-3 py-2 rounded-lg border border-stone-200 bg-white text-sm text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors",
+                  entry.closed && "opacity-50 bg-stone-100 cursor-not-allowed",
                 ]}
               />
             </div>
@@ -112,7 +112,7 @@ try {
                   type="checkbox"
                   name={`closed-${i}`}
                   checked={entry.closed}
-                  class="hours-closed rounded border-gray-300 text-brand-primary focus:ring-brand-primary/30"
+                  class="hours-closed rounded border-stone-300 text-brand-primary focus:ring-brand-primary/30"
                 />
                 <span class="text-sm text-brand-text-body">Closed</span>
               </label>
@@ -155,11 +155,11 @@ try {
       closeInput.disabled = isClosed;
 
       if (isClosed) {
-        openInput.classList.add("opacity-50", "bg-gray-100", "cursor-not-allowed");
-        closeInput.classList.add("opacity-50", "bg-gray-100", "cursor-not-allowed");
+        openInput.classList.add("opacity-50", "bg-stone-100", "cursor-not-allowed");
+        closeInput.classList.add("opacity-50", "bg-stone-100", "cursor-not-allowed");
       } else {
-        openInput.classList.remove("opacity-50", "bg-gray-100", "cursor-not-allowed");
-        closeInput.classList.remove("opacity-50", "bg-gray-100", "cursor-not-allowed");
+        openInput.classList.remove("opacity-50", "bg-stone-100", "cursor-not-allowed");
+        closeInput.classList.remove("opacity-50", "bg-stone-100", "cursor-not-allowed");
       }
     });
   });

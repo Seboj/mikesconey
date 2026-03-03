@@ -13,7 +13,7 @@ const { images } = Astro.props;
     images.map((image, index) => (
       <button
         type="button"
-        class="group aspect-[4/3] overflow-hidden rounded-lg cursor-pointer relative focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+        class="group aspect-[4/3] overflow-hidden rounded-xl cursor-pointer relative focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 card-warm"
         data-gallery-item
         data-index={index}
         data-src={image.src}
@@ -30,8 +30,8 @@ const { images } = Astro.props;
           height="300"
         />
         {image.caption && (
-          <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <p class="text-sm text-white">{image.caption}</p>
+          <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-brand-dark-deeper/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <p class="text-sm text-brand-cream font-medium">{image.caption}</p>
           </div>
         )}
       </button>

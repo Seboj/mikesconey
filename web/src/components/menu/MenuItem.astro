@@ -11,25 +11,27 @@ interface Props {
 const { item } = Astro.props;
 
 const tagColors: Record<string, string> = {
-  GF: "bg-green-100 text-green-800",
-  V: "bg-emerald-100 text-emerald-800",
-  Spicy: "bg-red-100 text-red-800",
+  GF: "bg-green-900/20 text-green-700 border-green-800/20",
+  V: "bg-emerald-900/20 text-emerald-700 border-emerald-800/20",
+  Spicy: "bg-red-900/20 text-red-700 border-red-800/20",
 };
 ---
 
-<div class="group flex justify-between gap-4 p-4 rounded-lg hover:bg-white/60 transition-colors">
-  <div class="flex-1 min-w-0">
-    <div class="flex items-center gap-2 flex-wrap">
-      <h3 class="font-heading font-semibold text-brand-text-heading">{item.name}</h3>
-      {item.tags.length > 0 && item.tags.map((tag) => (
-        <span class={`text-xs font-medium px-1.5 py-0.5 rounded ${tagColors[tag] || "bg-gray-100 text-gray-700"}`}>
-          {tag}
-        </span>
-      ))}
+<div class="group card-warm p-4 hover:border-brand-secondary/30 transition-all duration-200">
+  <div class="flex justify-between gap-4">
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 flex-wrap">
+        <h3 class="font-heading font-bold text-brand-text-heading">{item.name}</h3>
+        {item.tags.length > 0 && item.tags.map((tag) => (
+          <span class={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${tagColors[tag] || "bg-stone-100 text-stone-600 border-stone-200"}`}>
+            {tag}
+          </span>
+        ))}
+      </div>
+      <p class="text-sm text-brand-text-muted mt-1 leading-relaxed">{item.description}</p>
     </div>
-    <p class="text-sm text-brand-text-muted mt-1 leading-relaxed">{item.description}</p>
-  </div>
-  <div class="flex-shrink-0 font-heading font-semibold text-brand-text-heading">
-    {item.price}
+    <div class="flex-shrink-0 font-heading font-bold text-brand-primary text-lg">
+      {item.price}
+    </div>
   </div>
 </div>

@@ -15,15 +15,16 @@ const [siteInfo, hours, faqItems] = await Promise.all([
 
 <BaseLayout title="Contact" siteInfo={siteInfo} hours={hours}>
   <!-- Page Header -->
-  <section class="bg-brand-accent/30 py-12 md:py-16 px-4 md:px-8">
-    <div class="max-w-4xl mx-auto text-center">
-      <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
-      <h1
-        class="font-heading text-3xl md:text-4xl font-bold text-brand-text-heading mb-3"
-      >
+  <section class="bg-brand-dark-deeper relative overflow-hidden py-14 md:py-20">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[60%] bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.05)_0%,transparent_70%)] pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-4xl mx-auto text-center px-4 md:px-8">
+      <h1 class="font-display text-3xl md:text-5xl text-brand-primary text-neon-red mb-3">
         Find Us
       </h1>
-      <p class="text-brand-text-muted text-lg">
+      <div class="divider-amber w-16 mx-auto mb-4"></div>
+      <p class="text-stone-400 text-lg">
         Stop by for a classic coney, a hearty breakfast, or your favorite
         comfort food.
       </p>
@@ -37,12 +38,8 @@ const [siteInfo, hours, faqItems] = await Promise.all([
         <!-- Left Column: Contact Details -->
         <div class="space-y-6">
           <!-- Visit Us Card -->
-          <div
-            class="bg-white rounded-xl shadow-sm border border-brand-divider p-6"
-          >
-            <h2
-              class="font-heading text-xl font-bold text-brand-text-heading mb-4"
-            >
+          <div class="card-warm p-6">
+            <h2 class="font-heading text-xl font-bold text-brand-text-heading mb-4">
               Visit Us
             </h2>
             <address class="not-italic text-brand-text-body space-y-1 mb-4">
@@ -57,7 +54,7 @@ const [siteInfo, hours, faqItems] = await Promise.all([
               href={siteInfo.maps.directionsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 text-brand-primary hover:text-brand-primary-light font-medium transition-colors"
+              class="inline-flex items-center gap-2 text-brand-primary hover:text-brand-primary-light font-bold transition-colors"
             >
               <svg
                 class="w-5 h-5"
@@ -82,7 +79,7 @@ const [siteInfo, hours, faqItems] = await Promise.all([
             <div class="mt-4">
               <a
                 href={siteInfo.phone.tel}
-                class="inline-flex items-center gap-2 text-brand-primary hover:text-brand-primary-light font-medium text-lg transition-colors"
+                class="inline-flex items-center gap-2 text-brand-primary hover:text-brand-primary-light font-bold text-lg transition-colors"
               >
                 <svg
                   class="w-5 h-5"
@@ -103,25 +100,21 @@ const [siteInfo, hours, faqItems] = await Promise.all([
           </div>
 
           <!-- Hours Card -->
-          <div
-            class="bg-white rounded-xl shadow-sm border border-brand-divider p-6"
-          >
-            <h2
-              class="font-heading text-xl font-bold text-brand-text-heading mb-4"
-            >
+          <div class="card-warm p-6">
+            <h2 class="font-heading text-xl font-bold text-brand-text-heading mb-4">
               Hours
             </h2>
             {
               hours.map((h) => (
                 <div
-                  class="contact-hours-row flex justify-between items-center py-2 border-b border-brand-divider/30 last:border-b-0"
+                  class="contact-hours-row flex justify-between items-center py-2 border-b border-brand-divider/30 last:border-b-0 text-sm"
                   data-day={h.day}
                 >
                   <span class="contact-hours-day font-medium text-brand-text-body">
                     {h.day}
                   </span>
                   {h.closed ? (
-                    <span class="contact-hours-time text-brand-primary font-medium">
+                    <span class="contact-hours-time text-brand-primary font-semibold">
                       Closed
                     </span>
                   ) : (
@@ -140,7 +133,7 @@ const [siteInfo, hours, faqItems] = await Promise.all([
 
         <!-- Right Column: Google Map -->
         <div
-          class="rounded-xl overflow-hidden shadow-sm border border-brand-divider h-full min-h-[350px] md:min-h-[450px]"
+          class="rounded-xl overflow-hidden card-warm h-full min-h-[350px] md:min-h-[450px]"
         >
           <iframe
             src={siteInfo.maps.embedUrl}
@@ -157,12 +150,12 @@ const [siteInfo, hours, faqItems] = await Promise.all([
   </section>
 
   <!-- FAQ Section -->
-  <section class="px-4 md:px-8 lg:px-16 py-12 md:py-16 bg-brand-accent/10">
-    <div class="mx-auto max-w-3xl">
-      <div class="w-12 h-1 bg-brand-primary mx-auto mb-4 rounded-full"></div>
-      <h2
-        class="font-heading text-2xl md:text-3xl font-bold text-brand-text-heading text-center mb-8"
-      >
+  <section class="px-4 md:px-8 lg:px-16 py-12 md:py-16 bg-brand-dark-deeper relative overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+
+    <div class="relative z-10 mx-auto max-w-3xl">
+      <span class="section-accent mx-auto mb-4"></span>
+      <h2 class="font-heading text-2xl md:text-3xl font-bold text-brand-cream text-center mb-8">
         Frequently Asked Questions
       </h2>
       <FaqAccordion faqItems={faqItems} />
@@ -183,7 +176,7 @@ const [siteInfo, hours, faqItems] = await Promise.all([
   const today = days[new Date().getDay()];
   document.querySelectorAll(".contact-hours-row").forEach((row) => {
     if (row instanceof HTMLElement && row.dataset.day === today) {
-      row.classList.add("bg-brand-accent/50", "rounded-lg", "px-3", "-mx-3");
+      row.classList.add("bg-brand-secondary/5", "rounded-lg", "px-3", "-mx-3");
       const daySpan = row.querySelector(".contact-hours-day");
       if (daySpan) {
         daySpan.classList.add("text-brand-primary", "font-bold");

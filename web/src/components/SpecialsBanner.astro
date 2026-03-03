@@ -10,21 +10,14 @@ const { special } = Astro.props;
 
 <section class="py-6 px-4 md:px-8" id="todays-special">
   <div class="mx-auto max-w-2xl">
-    <div class="relative bg-gradient-to-r from-brand-primary to-brand-primary-dark rounded-xl shadow-lg overflow-hidden">
-      <!-- Subtle pattern overlay -->
-      <div class="absolute inset-0 opacity-10">
-        <svg class="w-full h-full" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="60" r="40" fill="white" />
-          <circle cx="150" cy="30" r="25" fill="white" />
-          <circle cx="300" cy="80" r="35" fill="white" />
-          <circle cx="380" cy="20" r="20" fill="white" />
-        </svg>
-      </div>
+    <div class="relative bg-brand-dark rounded-xl overflow-hidden border border-stone-800">
+      <!-- Subtle warm glow at top -->
+      <div class="absolute top-0 left-[20%] right-[20%] h-px bg-gradient-to-r from-transparent via-brand-primary to-transparent"></div>
 
       <div class="relative px-6 py-5 md:px-8 md:py-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <!-- Tag -->
         <div class="flex-shrink-0">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold uppercase tracking-wider">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-xs font-bold uppercase tracking-wider">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
             </svg>
@@ -34,10 +27,10 @@ const { special } = Astro.props;
 
         <!-- Content -->
         <div class="flex-1 min-w-0">
-          <h3 class="font-heading text-lg md:text-xl font-bold text-white">
+          <h3 class="font-display text-lg md:text-xl text-brand-cream">
             {special.title}
           </h3>
-          <p class="text-white/90 text-sm mt-1">
+          <p class="text-stone-400 text-sm mt-1">
             {special.description}
           </p>
         </div>
@@ -45,7 +38,7 @@ const { special } = Astro.props;
         <!-- Price badge -->
         {special.price && (
           <div class="flex-shrink-0">
-            <span class="inline-block px-4 py-2 bg-white rounded-lg text-brand-primary font-heading font-bold text-lg">
+            <span class="inline-block px-4 py-2 bg-brand-secondary rounded text-brand-dark-deeper font-bold text-lg">
               {special.price}
             </span>
           </div>

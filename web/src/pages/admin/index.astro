@@ -43,7 +43,7 @@ const statCards = [
   <!-- Stats Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
     {statCards.map((card) => (
-      <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-stone-200">
         <div class="flex items-center gap-3">
           <div class={`w-10 h-10 ${card.color} rounded-lg flex items-center justify-center`}>
             <span class="text-white font-bold text-lg">{card.value}</span>
@@ -58,8 +58,8 @@ const statCards = [
   </div>
 
   <!-- Recent Signups -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200">
+    <div class="px-6 py-4 border-b border-stone-200 flex items-center justify-between">
       <h2 class="font-heading font-semibold text-brand-text-heading">Recent Signups</h2>
       <a href="/admin/customers" class="text-sm text-brand-primary hover:text-brand-primary-dark font-medium transition-colors">
         View All &rarr;
@@ -70,7 +70,7 @@ const statCards = [
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-100">
+            <tr class="border-b border-stone-200">
               <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Name</th>
               <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Email</th>
               <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Phone</th>
@@ -78,9 +78,9 @@ const statCards = [
               <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Signed Up</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-50">
+          <tbody class="divide-y divide-stone-100">
             {recentCustomers.map((c: any) => (
-              <tr class="hover:bg-gray-50/50 transition-colors">
+              <tr class="hover:bg-stone-50 transition-colors">
                 <td class="px-6 py-3 font-medium text-brand-text-heading">
                   {c.firstName} {c.lastName}
                 </td>

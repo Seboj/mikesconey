@@ -20,7 +20,7 @@ const { title, description, siteInfo, hours } = Astro.props;
   <head>
     <BaseHead title={title} description={description} siteInfo={siteInfo} hours={hours} />
   </head>
-  <body class="min-h-screen flex flex-col bg-brand-light">
+  <body class="min-h-screen flex flex-col bg-brand-light bg-texture-warm">
     <Nav site={siteInfo} />
     <main id="main-content" class="flex-1">
       <slot />

@@ -11,7 +11,7 @@ import BaseHead from "../../components/BaseHead.astro";
   </head>
   <body class="min-h-screen flex items-center justify-center bg-brand-dark-deeper">
     <div class="w-full max-w-md px-4">
-      <div class="bg-white rounded-2xl shadow-xl p-8">
+      <div class="bg-white rounded-2xl shadow-xl p-8 border border-stone-200">
         <!-- Header -->
         <div class="text-center mb-8">
           <div class="w-12 h-12 bg-brand-primary rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -19,9 +19,10 @@ import BaseHead from "../../components/BaseHead.astro";
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h1 class="font-heading text-2xl font-bold text-brand-text-heading">
-            Mike's Coney Admin
+          <h1 class="font-display text-2xl text-brand-primary">
+            Mike's Coney
           </h1>
+          <p class="text-xs font-heading font-semibold text-brand-text-muted uppercase tracking-widest mt-1">Admin Dashboard</p>
           <p class="text-sm text-brand-text-muted mt-1">Sign in to manage your restaurant</p>
         </div>
 
@@ -37,7 +38,7 @@ import BaseHead from "../../components/BaseHead.astro";
               name="email"
               required
               autocomplete="email"
-              class="w-full px-4 py-3 rounded-lg border border-brand-divider bg-white text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              class="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
               placeholder="admin@mikesconey.com"
             />
           </div>
@@ -52,7 +53,7 @@ import BaseHead from "../../components/BaseHead.astro";
               name="password"
               required
               autocomplete="current-password"
-              class="w-full px-4 py-3 rounded-lg border border-brand-divider bg-white text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              class="w-full px-4 py-3 rounded-lg border border-stone-200 bg-white text-brand-text-body placeholder:text-brand-text-muted/60 focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
               placeholder="Enter your password"
             />
           </div>
