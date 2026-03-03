@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
 import { healthRouter } from "./routes/health.js";
 import { customersRouter } from "./routes/customers.js";
 import { authRouter } from "./routes/auth.js";
@@ -35,11 +36,16 @@ app.use(
 app.use(express.json());
 
 // Session
+const isProd = process.env.NODE_ENV === "production";
 const PgSession = connectPgSimple(session);
+const sessionPool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProd ? { rejectUnauthorized: false } : false,
+});
 app.use(
   session({
     store: new PgSession({
-      conString: process.env.DATABASE_URL,
+      pool: sessionPool,
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET || "dev-secret-change-me",
