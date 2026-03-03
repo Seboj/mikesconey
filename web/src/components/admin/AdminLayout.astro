@@ -25,9 +25,7 @@ try {
   // Auth check failed
 }
 
-if (!user) {
-  return Astro.redirect("/admin/login");
-}
+const isAuthed = !!user;
 
 const navItems = [
   { label: "Dashboard", href: "/admin/", icon: "dashboard" },
@@ -43,6 +41,7 @@ const navItems = [
 ---
 
 <!doctype html>
+{isAuthed ? (
 <html lang="en">
   <head>
     <BaseHead title={`${title} | Admin`} description="Admin Dashboard" />
@@ -181,3 +180,11 @@ const navItems = [
     </script>
   </body>
 </html>
+) : (
+<html lang="en">
+  <head>
+    <meta http-equiv="refresh" content="0;url=/admin/login" />
+  </head>
+  <body></body>
+</html>
+)}
