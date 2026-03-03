@@ -36,14 +36,16 @@ jobs:
 
       - name: Build and push API image
         run: |
-          docker build -t $ECR_REGISTRY/$API_REPO:${{ github.sha }} \
+          docker build --platform linux/amd64 \
+                       -t $ECR_REGISTRY/$API_REPO:${{ github.sha }} \
                        -t $ECR_REGISTRY/$API_REPO:latest \
                        -f server/Dockerfile.prod server/
           docker push $ECR_REGISTRY/$API_REPO --all-tags
 
       - name: Build and push Web image
         run: |
-          docker build -t $ECR_REGISTRY/$WEB_REPO:${{ github.sha }} \
+          docker build --platform linux/amd64 \
+                       -t $ECR_REGISTRY/$WEB_REPO:${{ github.sha }} \
                        -t $ECR_REGISTRY/$WEB_REPO:latest \
                        -f web/Dockerfile.prod .
           docker push $ECR_REGISTRY/$WEB_REPO --all-tags
