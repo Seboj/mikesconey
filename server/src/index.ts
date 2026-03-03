@@ -17,6 +17,9 @@ import { authMiddleware } from "./middleware/auth.js";
 const app = express();
 const port = parseInt(process.env.API_PORT || "3000", 10);
 
+// Trust proxy (App Runner terminates SSL and forwards as HTTP)
+app.set("trust proxy", 1);
+
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(
