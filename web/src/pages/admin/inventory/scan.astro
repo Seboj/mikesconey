@@ -106,7 +106,7 @@ try {
     </div>
   </div>
 
-  <script type="application/json" id="inv-items-data">{JSON.stringify(items)}</script>
+  <script type="application/json" id="inv-items-data" set:html={JSON.stringify(items)}></script>
 </AdminLayout>
 
 <script>

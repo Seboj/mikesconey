@@ -107,7 +107,7 @@ try {
     </div>
   </div>
 
-  <script type="application/json" id="menu-items-data">{JSON.stringify(menuItems)}</script>
+  <script type="application/json" id="menu-items-data" set:html={JSON.stringify(menuItems)}></script>
 </AdminLayout>
 
 <script>
