@@ -32,13 +32,13 @@ try {
     <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
       <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Upload Invoice</h2>
       <form id="scan-form" enctype="multipart/form-data">
+        <input type="file" name="invoice" accept="image/*" class="hidden" id="file-input" />
         <div class="border-2 border-dashed border-stone-300 rounded-lg p-8 text-center hover:border-brand-primary transition-colors cursor-pointer" id="drop-zone">
           <svg class="w-10 h-10 mx-auto text-stone-400 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
           </svg>
           <p class="text-sm text-brand-text-muted mb-2">Drag & drop or click to upload</p>
           <p class="text-xs text-brand-text-muted">JPG, PNG, WebP — max 10MB</p>
-          <input type="file" name="invoice" accept="image/*" class="hidden" id="file-input" />
         </div>
         <div id="file-preview" class="mt-3 hidden">
           <p class="text-sm text-brand-text-body" id="file-name"></p>
@@ -112,6 +112,10 @@ try {
 <script>
   const items = JSON.parse(document.getElementById("inv-items-data")?.textContent || "[]");
 
+  // Prevent browser from opening files dropped anywhere on the page
+  document.addEventListener("dragover", (e) => e.preventDefault());
+  document.addEventListener("drop", (e) => e.preventDefault());
+
   const dropZone = document.getElementById("drop-zone")!;
   const fileInput = document.getElementById("file-input") as HTMLInputElement;
   const scanBtn = document.getElementById("scan-btn") as HTMLButtonElement;
@@ -119,10 +123,15 @@ try {
   let selectedFile: File | null = null;
 
   dropZone.addEventListener("click", () => fileInput.click());
-  dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("border-brand-primary"); });
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add("border-brand-primary");
+  });
   dropZone.addEventListener("dragleave", () => dropZone.classList.remove("border-brand-primary"));
   dropZone.addEventListener("drop", (e) => {
     e.preventDefault();
+    e.stopPropagation();
     dropZone.classList.remove("border-brand-primary");
     if (e.dataTransfer?.files[0]) setFile(e.dataTransfer.files[0]);
   });
