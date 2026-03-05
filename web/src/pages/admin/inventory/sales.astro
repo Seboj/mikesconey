@@ -106,9 +106,13 @@ try {
       </table>
     </div>
   </div>
+
+  <script type="application/json" id="menu-items-data">{JSON.stringify(menuItems)}</script>
 </AdminLayout>
 
-<script define:vars={{ menuItems }}>
+<script>
+  const menuItems = JSON.parse(document.getElementById("menu-items-data")?.textContent || "[]");
+
   const tbody = document.getElementById("sales-body")!;
   const dateInput = document.getElementById("sale-date") as HTMLInputElement;
   dateInput.value = new Date().toISOString().split("T")[0];
@@ -136,7 +140,6 @@ try {
 
   document.getElementById("add-sale-row")?.addEventListener("click", () => addSaleRow());
 
-  // AI Parse
   document.getElementById("parse-btn")?.addEventListener("click", async () => {
     const text = (document.getElementById("nlp-input") as HTMLTextAreaElement).value.trim();
     if (!text) return;
@@ -164,7 +167,6 @@ try {
     }
   });
 
-  // Submit
   document.getElementById("submit-sales")?.addEventListener("click", async () => {
     const rows = document.querySelectorAll(".sale-row");
     const lines: any[] = [];
@@ -192,7 +194,7 @@ try {
     if (res.ok) {
       msg.textContent = "Sales entry recorded! Inventory updated.";
       msg.className = "text-sm mt-2 text-green-600";
-      setTimeout(() => window.location.reload(), 800);
+      setTimeout(() => { window.location.reload(); }, 800);
     } else {
       const err = await res.json();
       msg.textContent = err.error || "Failed to submit sales";
@@ -200,7 +202,6 @@ try {
     }
   });
 
-  // Delete
   document.querySelectorAll(".delete-sale").forEach((btn) => {
     btn.addEventListener("click", async () => {
       if (!confirm("Delete this sales entry?")) return;

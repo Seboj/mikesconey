@@ -116,12 +116,17 @@ try {
       )}
     </div>
   </div>
+
+  <script type="application/json" id="recipe-data">{JSON.stringify({ menuItemId, recipe, inventoryItems })}</script>
 </AdminLayout>
 
-<script define:vars={{ menuItemId, recipe, inventoryItems }}>
-  if (!menuItemId) {
-    // No item selected, nothing to do
-  } else {
+<script>
+  const _rd = JSON.parse(document.getElementById("recipe-data")?.textContent || "{}");
+  const menuItemId: string = _rd.menuItemId || "";
+  const recipe: any[] = _rd.recipe || [];
+  const inventoryItems: any[] = _rd.inventoryItems || [];
+
+  if (menuItemId) {
     const tbody = document.getElementById("recipe-body")!;
 
     function renderRow(data?: any) {
@@ -148,12 +153,10 @@ try {
       tbody.appendChild(tr);
     }
 
-    // Render existing recipe
     recipe.forEach((r: any) => renderRow(r));
 
     document.getElementById("add-row-btn")?.addEventListener("click", () => renderRow());
 
-    // Save
     document.getElementById("save-recipe-btn")?.addEventListener("click", async () => {
       const rows = document.querySelectorAll(".recipe-row");
       const items: any[] = [];
@@ -182,7 +185,6 @@ try {
       }
     });
 
-    // AI Suggest
     document.getElementById("suggest-btn")?.addEventListener("click", async () => {
       const status = document.getElementById("suggest-status")!;
       status.classList.remove("hidden");
@@ -192,7 +194,6 @@ try {
         if (!res.ok) throw new Error("Failed");
         const suggestions = await res.json();
 
-        // Clear existing rows and render suggestions
         tbody.innerHTML = "";
         suggestions.forEach((s: any) => renderRow({
           inventoryItemId: s.inventoryItemId,

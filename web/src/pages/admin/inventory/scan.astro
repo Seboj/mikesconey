@@ -105,9 +105,13 @@ try {
       <p id="confirm-msg" class="text-sm mt-2 hidden"></p>
     </div>
   </div>
+
+  <script type="application/json" id="inv-items-data">{JSON.stringify(items)}</script>
 </AdminLayout>
 
-<script define:vars={{ items }}>
+<script>
+  const items = JSON.parse(document.getElementById("inv-items-data")?.textContent || "[]");
+
   const dropZone = document.getElementById("drop-zone")!;
   const fileInput = document.getElementById("file-input") as HTMLInputElement;
   const scanBtn = document.getElementById("scan-btn") as HTMLButtonElement;
@@ -163,7 +167,6 @@ try {
   function renderResults(data: any) {
     document.getElementById("results-section")!.style.display = "";
 
-    // Try to match vendor by name
     const vendorSelect = document.getElementById("result-vendor") as HTMLSelectElement;
     if (data.vendor) {
       const opt = Array.from(vendorSelect.options).find((o) => o.text.toLowerCase().includes(data.vendor.toLowerCase()));
@@ -207,13 +210,12 @@ try {
     const vendorId = (document.getElementById("result-vendor") as HTMLSelectElement).value || undefined;
     const orderDate = (document.getElementById("result-date") as HTMLInputElement).value;
 
-    // Gather edited line items
     const inputs = document.querySelectorAll(".line-input") as NodeListOf<HTMLInputElement | HTMLSelectElement>;
     const lineMap = new Map<number, any>();
     inputs.forEach((el) => {
-      const idx = parseInt(el.dataset.idx || "0");
+      const idx = parseInt((el as HTMLElement).dataset.idx || "0");
       if (!lineMap.has(idx)) lineMap.set(idx, { ...scanResult.lineItems[idx] });
-      const field = el.dataset.field!;
+      const field = (el as HTMLElement).dataset.field!;
       lineMap.get(idx)![field] = el.value;
     });
 
@@ -245,7 +247,7 @@ try {
     if (res.ok) {
       msgEl.textContent = "Purchase order created! Redirecting...";
       msgEl.className = "text-sm mt-2 text-green-600";
-      setTimeout(() => window.location.href = "/admin/inventory/purchase-orders", 1000);
+      setTimeout(() => { window.location.href = "/admin/inventory/purchase-orders"; }, 1000);
     } else {
       const err = await res.json();
       msgEl.textContent = err.error || "Failed to create PO";
