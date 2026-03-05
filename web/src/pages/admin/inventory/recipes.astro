@@ -1,0 +1,209 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../components/admin/AdminLayout.astro";
+import InventoryNav from "../../../components/admin/InventoryNav.astro";
+
+const apiUrl = process.env.API_URL || "http://localhost:3000";
+const cookie = Astro.request.headers.get("cookie") || "";
+
+const menuItemId = Astro.url.searchParams.get("menuItemId") || "";
+
+let menuItems: any[] = [];
+let inventoryItems: any[] = [];
+let recipe: any[] = [];
+let selectedMenuItem: any = null;
+
+try {
+  const [miRes, iiRes] = await Promise.all([
+    fetch(`${apiUrl}/api/admin/inventory/menu-items`, { headers: { cookie } }),
+    fetch(`${apiUrl}/api/admin/inventory/items`, { headers: { cookie } }),
+  ]);
+  if (miRes.ok) menuItems = await miRes.json();
+  if (iiRes.ok) inventoryItems = await iiRes.json();
+
+  if (menuItemId) {
+    selectedMenuItem = menuItems.find((m: any) => m.id === menuItemId);
+    const rRes = await fetch(`${apiUrl}/api/admin/inventory/recipes/${menuItemId}`, { headers: { cookie } });
+    if (rRes.ok) recipe = await rRes.json();
+  }
+} catch {}
+---
+
+<AdminLayout title="Recipes" activePage="inventory">
+  <div class="mb-6">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Inventory</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Define ingredient recipes for menu items.</p>
+  </div>
+
+  <InventoryNav active="recipes" />
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Menu Items List -->
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200">
+      <div class="px-6 py-4 border-b border-stone-200">
+        <h2 class="font-heading font-semibold text-brand-text-heading text-sm">Menu Items</h2>
+      </div>
+      <div class="divide-y divide-stone-100 max-h-[500px] overflow-y-auto">
+        {menuItems.map((mi) => (
+          <a
+            href={`/admin/inventory/recipes?menuItemId=${mi.id}`}
+            class:list={[
+              "block px-6 py-3 text-sm transition-colors",
+              mi.id === menuItemId
+                ? "bg-brand-primary/5 text-brand-primary font-medium border-l-2 border-brand-primary"
+                : "text-brand-text-body hover:bg-stone-50",
+            ]}
+          >
+            {mi.name}
+          </a>
+        ))}
+        {menuItems.length === 0 && (
+          <div class="px-6 py-8 text-center text-brand-text-muted text-sm">
+            <a href="/admin/inventory/menu-items" class="text-brand-primary hover:underline">Add menu items</a> first.
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- Recipe Editor -->
+    <div class="lg:col-span-2">
+      {selectedMenuItem ? (
+        <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="font-heading font-semibold text-brand-text-heading">{selectedMenuItem.name}</h2>
+              <p class="text-xs text-brand-text-muted">Define ingredients per single serving</p>
+            </div>
+            <button id="suggest-btn" class="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors">
+              AI Suggest
+            </button>
+          </div>
+
+          <div id="recipe-editor">
+            <div class="overflow-x-auto border border-stone-200 rounded-lg mb-4">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="bg-stone-50 border-b border-stone-200">
+                    <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Ingredient</th>
+                    <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Qty / Serving</th>
+                    <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Unit</th>
+                    <th class="w-10"></th>
+                  </tr>
+                </thead>
+                <tbody id="recipe-body"></tbody>
+              </table>
+            </div>
+
+            <div class="flex gap-2">
+              <button id="add-row-btn" class="px-3 py-1.5 border border-stone-300 rounded-lg text-xs font-medium text-brand-text-body hover:bg-stone-50 transition-colors">+ Add Ingredient</button>
+              <button id="save-recipe-btn" class="px-4 py-1.5 bg-brand-primary text-white rounded-lg text-xs font-medium hover:bg-brand-primary-dark transition-colors">Save Recipe</button>
+            </div>
+            <p id="recipe-msg" class="text-sm mt-2 hidden"></p>
+          </div>
+
+          <div id="suggest-status" class="mt-3 hidden">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+              <span class="text-sm text-brand-text-muted">Generating recipe suggestion...</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-12 text-center">
+          <p class="text-brand-text-muted">Select a menu item to edit its recipe.</p>
+        </div>
+      )}
+    </div>
+  </div>
+</AdminLayout>
+
+<script define:vars={{ menuItemId, recipe, inventoryItems }}>
+  if (!menuItemId) {
+    // No item selected, nothing to do
+  } else {
+    const tbody = document.getElementById("recipe-body")!;
+
+    function renderRow(data?: any) {
+      const tr = document.createElement("tr");
+      tr.className = "border-b border-stone-100 recipe-row";
+      tr.innerHTML = `
+        <td class="px-3 py-2">
+          <select class="r-item w-full border border-stone-200 rounded px-2 py-1 text-sm">
+            <option value="">— Select —</option>
+            ${inventoryItems.map((ii: any) => `<option value="${ii.id}" ${data?.inventoryItemId === ii.id ? "selected" : ""}>${ii.name} (${ii.unit})</option>`).join("")}
+          </select>
+        </td>
+        <td class="px-3 py-2 text-right">
+          <input type="number" step="0.001" value="${data?.qtyPerServing || ''}" class="r-qty w-24 border border-stone-200 rounded px-2 py-1 text-sm text-right" />
+        </td>
+        <td class="px-3 py-2">
+          <input type="text" value="${data?.unit || ''}" class="r-unit w-20 border border-stone-200 rounded px-2 py-1 text-sm" />
+        </td>
+        <td class="px-3 py-1">
+          <button class="remove-row text-red-500 hover:text-red-700 text-lg">&times;</button>
+        </td>
+      `;
+      tr.querySelector(".remove-row")!.addEventListener("click", () => tr.remove());
+      tbody.appendChild(tr);
+    }
+
+    // Render existing recipe
+    recipe.forEach((r: any) => renderRow(r));
+
+    document.getElementById("add-row-btn")?.addEventListener("click", () => renderRow());
+
+    // Save
+    document.getElementById("save-recipe-btn")?.addEventListener("click", async () => {
+      const rows = document.querySelectorAll(".recipe-row");
+      const items: any[] = [];
+      rows.forEach((row) => {
+        const itemId = (row.querySelector(".r-item") as HTMLSelectElement).value;
+        const qty = (row.querySelector(".r-qty") as HTMLInputElement).value;
+        const unit = (row.querySelector(".r-unit") as HTMLInputElement).value;
+        if (itemId && qty && unit) {
+          items.push({ inventoryItemId: itemId, qtyPerServing: qty, unit });
+        }
+      });
+
+      const res = await fetch(`/api/admin/inventory/recipes/${menuItemId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(items),
+      });
+
+      const msg = document.getElementById("recipe-msg")!;
+      if (res.ok) {
+        msg.textContent = "Recipe saved!";
+        msg.className = "text-sm mt-2 text-green-600";
+      } else {
+        msg.textContent = "Failed to save recipe";
+        msg.className = "text-sm mt-2 text-red-600";
+      }
+    });
+
+    // AI Suggest
+    document.getElementById("suggest-btn")?.addEventListener("click", async () => {
+      const status = document.getElementById("suggest-status")!;
+      status.classList.remove("hidden");
+
+      try {
+        const res = await fetch(`/api/admin/inventory/recipes/${menuItemId}/suggest`, { method: "POST" });
+        if (!res.ok) throw new Error("Failed");
+        const suggestions = await res.json();
+
+        // Clear existing rows and render suggestions
+        tbody.innerHTML = "";
+        suggestions.forEach((s: any) => renderRow({
+          inventoryItemId: s.inventoryItemId,
+          qtyPerServing: s.qtyPerServing,
+          unit: s.unit,
+        }));
+      } catch {
+        alert("Failed to generate recipe suggestion");
+      } finally {
+        status.classList.add("hidden");
+      }
+    });
+  }
+</script>

@@ -157,3 +157,125 @@ export interface Special {
 }
 
 export type SpecialsContent = Special[];
+
+// ── Inventory Module ──
+
+export interface Vendor {
+  id: string;
+  name: string;
+  contact: string | null;
+  category: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  unit: string;
+  category: string | null;
+  currentQty: string;
+  parLevel: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  vendorId: string | null;
+  orderDate: string;
+  totalCost: string | null;
+  rawDocUrl: string | null;
+  rawDocS3Key: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  vendor?: Vendor;
+  lineItems?: POLineItem[];
+}
+
+export interface POLineItem {
+  id: string;
+  poId: string;
+  itemId: string | null;
+  description: string;
+  qty: string;
+  unitCost: string | null;
+  totalCost: string | null;
+}
+
+export interface MenuItemInventory {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Recipe {
+  id: string;
+  menuItemId: string;
+  inventoryItemId: string;
+  qtyPerServing: string;
+  unit: string;
+  inventoryItem?: InventoryItem;
+}
+
+export interface SalesEntry {
+  id: string;
+  saleDate: string;
+  notes: string | null;
+  createdAt: string;
+  lines?: SalesLine[];
+}
+
+export interface SalesLine {
+  id: string;
+  entryId: string;
+  menuItemId: string;
+  qtySold: number;
+  menuItem?: MenuItemInventory;
+}
+
+export interface UsageRecord {
+  id: string;
+  usageDate: string;
+  inventoryItemId: string;
+  qtyConsumed: string;
+  sourceEntryId: string | null;
+  createdAt: string;
+  inventoryItem?: InventoryItem;
+}
+
+export interface VLMInvoiceResult {
+  vendor: string;
+  date: string;
+  lineItems: Array<{
+    description: string;
+    qty: number;
+    unitCost: number;
+    totalCost: number;
+  }>;
+  confidence: number;
+}
+
+export interface SalesParsed {
+  items: Array<{
+    menuItemName: string;
+    qty: number;
+    menuItemId?: string;
+  }>;
+}
+
+export interface InventoryDashboardStats {
+  totalItems: number;
+  lowStockItems: number;
+  totalVendors: number;
+  pendingPOs: number;
+  totalPOValue: string;
+  recentActivity: Array<{
+    type: string;
+    description: string;
+    date: string;
+  }>;
+}

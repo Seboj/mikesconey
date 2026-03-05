@@ -1,0 +1,141 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../components/admin/AdminLayout.astro";
+import InventoryNav from "../../../components/admin/InventoryNav.astro";
+
+const apiUrl = process.env.API_URL || "http://localhost:3000";
+const cookie = Astro.request.headers.get("cookie") || "";
+
+let items: any[] = [];
+try {
+  const res = await fetch(`${apiUrl}/api/admin/inventory/items`, { headers: { cookie } });
+  if (res.ok) items = await res.json();
+} catch {}
+
+const itemRows = items.map((item) => {
+  const qty = parseFloat(item.currentQty);
+  const par = parseFloat(item.parLevel);
+  const isLow = par > 0 && qty <= par;
+  return { ...item, qty, par, isLow };
+});
+---
+
+<AdminLayout title="Inventory Items" activePage="inventory">
+  <div class="mb-6">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Inventory</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Track your stock levels and par levels.</p>
+  </div>
+
+  <InventoryNav active="items" />
+
+  <!-- Add Item Form -->
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6">
+    <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Add Item</h2>
+    <form id="add-item-form" class="flex flex-wrap gap-3 items-end">
+      <div class="flex-1 min-w-[180px]">
+        <label class="block text-xs font-medium text-brand-text-muted mb-1">Name *</label>
+        <input type="text" name="name" required class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary" />
+      </div>
+      <div class="w-28">
+        <label class="block text-xs font-medium text-brand-text-muted mb-1">Unit *</label>
+        <input type="text" name="unit" required placeholder="lb, oz, ea" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary" />
+      </div>
+      <div class="w-32">
+        <label class="block text-xs font-medium text-brand-text-muted mb-1">Category</label>
+        <input type="text" name="category" placeholder="Meat, Bread..." class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary" />
+      </div>
+      <div class="w-28">
+        <label class="block text-xs font-medium text-brand-text-muted mb-1">Qty on Hand</label>
+        <input type="number" name="currentQty" step="0.01" value="0" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary" />
+      </div>
+      <div class="w-28">
+        <label class="block text-xs font-medium text-brand-text-muted mb-1">Par Level</label>
+        <input type="number" name="parLevel" step="0.01" value="0" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary" />
+      </div>
+      <button type="submit" class="px-4 py-2 bg-brand-primary text-white rounded-lg text-sm font-medium hover:bg-brand-primary-dark transition-colors">Add</button>
+    </form>
+    <p id="item-msg" class="text-sm mt-2 hidden"></p>
+  </div>
+
+  <!-- Items Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-stone-200">
+            <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Name</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Unit</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Category</th>
+            <th class="text-right px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">On Hand</th>
+            <th class="text-right px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Par Level</th>
+            <th class="text-center px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Status</th>
+            <th class="text-right px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-stone-100">
+          {itemRows.map((item) => (
+              <tr class="hover:bg-stone-50">
+                <td class="px-6 py-3 font-medium text-brand-text-heading">{item.name}</td>
+                <td class="px-6 py-3 text-brand-text-body">{item.unit}</td>
+                <td class="px-6 py-3 text-brand-text-body">{item.category || "—"}</td>
+                <td class={`px-6 py-3 text-right font-mono ${item.isLow ? "text-red-600 font-bold" : "text-brand-text-body"}`}>{item.qty.toFixed(1)}</td>
+                <td class="px-6 py-3 text-right font-mono text-brand-text-muted">{item.par.toFixed(1)}</td>
+                <td class="px-6 py-3 text-center">
+                  {item.isLow ? (
+                    <span class="px-2 py-0.5 text-xs font-medium bg-red-50 text-red-700 rounded-full">Low</span>
+                  ) : (
+                    <span class="px-2 py-0.5 text-xs font-medium bg-green-50 text-green-700 rounded-full">OK</span>
+                  )}
+                </td>
+                <td class="px-6 py-3 text-right">
+                  <button class="delete-item text-red-600 hover:text-red-800 text-xs font-medium" data-id={item.id}>Delete</button>
+                </td>
+              </tr>
+          ))}
+          {items.length === 0 && (
+            <tr><td colspan="7" class="px-6 py-8 text-center text-brand-text-muted">No items yet. Add one above.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  document.getElementById("add-item-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const fd = new FormData(form);
+    const data = {
+      name: fd.get("name"),
+      unit: fd.get("unit"),
+      category: fd.get("category") || undefined,
+      currentQty: fd.get("currentQty")?.toString() || "0",
+      parLevel: fd.get("parLevel")?.toString() || "0",
+    };
+
+    const res = await fetch("/api/admin/inventory/items", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) window.location.reload();
+    else {
+      const err = await res.json();
+      const msg = document.getElementById("item-msg")!;
+      msg.textContent = err.error || "Failed to add item";
+      msg.className = "text-sm mt-2 text-red-600";
+    }
+  });
+
+  document.querySelectorAll(".delete-item").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete this item?")) return;
+      const id = (btn as HTMLElement).dataset.id;
+      const res = await fetch(`/api/admin/inventory/items/${id}`, { method: "DELETE" });
+      if (res.ok) window.location.reload();
+    });
+  });
+</script>

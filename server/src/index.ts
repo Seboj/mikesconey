@@ -12,6 +12,7 @@ import { dashboardRouter } from "./routes/dashboard.js";
 import { contentRouter } from "./routes/content.js";
 import { adminContentRouter } from "./routes/admin-content.js";
 import { adminGalleryRouter } from "./routes/admin-gallery.js";
+import { adminInventoryRouter } from "./routes/admin-inventory.js";
 import { askMikeRouter } from "./routes/ask-mike.js";
 import { authMiddleware } from "./middleware/auth.js";
 
@@ -70,6 +71,7 @@ app.use("/api/ask-mike", askMikeRouter);
 app.use("/api/admin", authMiddleware, dashboardRouter);
 app.use("/api/admin", authMiddleware, adminContentRouter);
 app.use("/api/admin", authMiddleware, adminGalleryRouter);
+app.use("/api/admin", authMiddleware, adminInventoryRouter);
 
 // Global error handler
 app.use(

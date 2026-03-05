@@ -1,0 +1,255 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../components/admin/AdminLayout.astro";
+import InventoryNav from "../../../components/admin/InventoryNav.astro";
+
+const apiUrl = process.env.API_URL || "http://localhost:3000";
+const cookie = Astro.request.headers.get("cookie") || "";
+
+let vendors: any[] = [];
+let items: any[] = [];
+try {
+  const [vRes, iRes] = await Promise.all([
+    fetch(`${apiUrl}/api/admin/inventory/vendors`, { headers: { cookie } }),
+    fetch(`${apiUrl}/api/admin/inventory/items`, { headers: { cookie } }),
+  ]);
+  if (vRes.ok) vendors = await vRes.json();
+  if (iRes.ok) items = await iRes.json();
+} catch {}
+---
+
+<AdminLayout title="Scan Invoice" activePage="inventory">
+  <div class="mb-6">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Inventory</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Upload a vendor invoice to auto-extract line items.</p>
+  </div>
+
+  <InventoryNav active="scan" />
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Upload Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+      <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Upload Invoice</h2>
+      <form id="scan-form" enctype="multipart/form-data">
+        <div class="border-2 border-dashed border-stone-300 rounded-lg p-8 text-center hover:border-brand-primary transition-colors cursor-pointer" id="drop-zone">
+          <svg class="w-10 h-10 mx-auto text-stone-400 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+          </svg>
+          <p class="text-sm text-brand-text-muted mb-2">Drag & drop or click to upload</p>
+          <p class="text-xs text-brand-text-muted">JPG, PNG, WebP — max 10MB</p>
+          <input type="file" name="invoice" accept="image/*" class="hidden" id="file-input" />
+        </div>
+        <div id="file-preview" class="mt-3 hidden">
+          <p class="text-sm text-brand-text-body" id="file-name"></p>
+        </div>
+        <button type="submit" id="scan-btn" class="mt-4 w-full px-4 py-2.5 bg-brand-primary text-white rounded-lg text-sm font-medium hover:bg-brand-primary-dark transition-colors disabled:opacity-50" disabled>
+          Scan with AI
+        </button>
+      </form>
+      <div id="scan-status" class="mt-3 hidden">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-sm text-brand-text-muted">Analyzing invoice...</span>
+        </div>
+      </div>
+      <p id="scan-error" class="text-sm mt-3 text-red-600 hidden"></p>
+    </div>
+
+    <!-- Results Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6" id="results-section" style="display:none">
+      <h2 class="font-heading font-semibold text-brand-text-heading mb-1">Extracted Data</h2>
+      <p class="text-xs text-brand-text-muted mb-4">Review and edit before confirming. Match line items to your inventory.</p>
+
+      <div class="mb-4 grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-medium text-brand-text-muted mb-1">Vendor</label>
+          <select id="result-vendor" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm">
+            <option value="">— Select —</option>
+            {vendors.map((v) => <option value={v.id}>{v.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-brand-text-muted mb-1">Date</label>
+          <input type="date" id="result-date" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+        </div>
+      </div>
+
+      <div class="mb-1 flex items-center justify-between">
+        <span class="text-xs font-medium text-brand-text-muted uppercase">Line Items</span>
+        <span class="text-xs text-brand-text-muted" id="confidence-badge"></span>
+      </div>
+      <div class="overflow-x-auto border border-stone-200 rounded-lg mb-4">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-stone-50 border-b border-stone-200">
+              <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Description</th>
+              <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Qty</th>
+              <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Unit $</th>
+              <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Total</th>
+              <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Match To</th>
+            </tr>
+          </thead>
+          <tbody id="line-items-body"></tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-brand-text-heading">Total</span>
+        <span class="text-sm font-bold text-brand-text-heading" id="result-total">$0.00</span>
+      </div>
+
+      <button id="confirm-po-btn" class="w-full px-4 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+        Create Purchase Order
+      </button>
+      <p id="confirm-msg" class="text-sm mt-2 hidden"></p>
+    </div>
+  </div>
+</AdminLayout>
+
+<script define:vars={{ items }}>
+  const dropZone = document.getElementById("drop-zone")!;
+  const fileInput = document.getElementById("file-input") as HTMLInputElement;
+  const scanBtn = document.getElementById("scan-btn") as HTMLButtonElement;
+  const scanForm = document.getElementById("scan-form")!;
+  let selectedFile: File | null = null;
+
+  dropZone.addEventListener("click", () => fileInput.click());
+  dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.classList.add("border-brand-primary"); });
+  dropZone.addEventListener("dragleave", () => dropZone.classList.remove("border-brand-primary"));
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("border-brand-primary");
+    if (e.dataTransfer?.files[0]) setFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener("change", () => { if (fileInput.files?.[0]) setFile(fileInput.files[0]); });
+
+  function setFile(f: File) {
+    selectedFile = f;
+    document.getElementById("file-name")!.textContent = f.name;
+    document.getElementById("file-preview")!.classList.remove("hidden");
+    scanBtn.disabled = false;
+  }
+
+  let scanResult: any = null;
+
+  scanForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+
+    const status = document.getElementById("scan-status")!;
+    const errEl = document.getElementById("scan-error")!;
+    status.classList.remove("hidden");
+    errEl.classList.add("hidden");
+    scanBtn.disabled = true;
+
+    const fd = new FormData();
+    fd.append("invoice", selectedFile);
+
+    try {
+      const res = await fetch("/api/admin/inventory/po/scan", { method: "POST", body: fd });
+      if (!res.ok) throw new Error((await res.json()).error || "Scan failed");
+      scanResult = await res.json();
+      renderResults(scanResult);
+    } catch (err: any) {
+      errEl.textContent = err.message;
+      errEl.classList.remove("hidden");
+    } finally {
+      status.classList.add("hidden");
+      scanBtn.disabled = false;
+    }
+  });
+
+  function renderResults(data: any) {
+    document.getElementById("results-section")!.style.display = "";
+
+    // Try to match vendor by name
+    const vendorSelect = document.getElementById("result-vendor") as HTMLSelectElement;
+    if (data.vendor) {
+      const opt = Array.from(vendorSelect.options).find((o) => o.text.toLowerCase().includes(data.vendor.toLowerCase()));
+      if (opt) vendorSelect.value = opt.value;
+    }
+
+    (document.getElementById("result-date") as HTMLInputElement).value = data.date || new Date().toISOString().split("T")[0];
+
+    const conf = Math.round((data.confidence || 0) * 100);
+    document.getElementById("confidence-badge")!.textContent = `Confidence: ${conf}%`;
+
+    const tbody = document.getElementById("line-items-body")!;
+    tbody.innerHTML = "";
+    let total = 0;
+
+    (data.lineItems || []).forEach((li: any, i: number) => {
+      total += li.totalCost || 0;
+      const tr = document.createElement("tr");
+      tr.className = "border-b border-stone-100";
+      tr.innerHTML = `
+        <td class="px-3 py-2"><input type="text" value="${li.description}" data-field="description" data-idx="${i}" class="w-full border border-stone-200 rounded px-2 py-1 text-sm line-input" /></td>
+        <td class="px-3 py-2 text-right"><input type="number" value="${li.qty}" step="0.01" data-field="qty" data-idx="${i}" class="w-20 border border-stone-200 rounded px-2 py-1 text-sm text-right line-input" /></td>
+        <td class="px-3 py-2 text-right"><input type="number" value="${li.unitCost?.toFixed(2) || '0'}" step="0.01" data-field="unitCost" data-idx="${i}" class="w-20 border border-stone-200 rounded px-2 py-1 text-sm text-right line-input" /></td>
+        <td class="px-3 py-2 text-right font-mono text-sm">$${(li.totalCost || 0).toFixed(2)}</td>
+        <td class="px-3 py-2">
+          <select data-field="itemId" data-idx="${i}" class="w-full border border-stone-200 rounded px-2 py-1 text-sm line-input">
+            <option value="">— None —</option>
+            ${items.map((it: any) => `<option value="${it.id}">${it.name} (${it.unit})</option>`).join("")}
+          </select>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("result-total")!.textContent = `$${total.toFixed(2)}`;
+  }
+
+  document.getElementById("confirm-po-btn")?.addEventListener("click", async () => {
+    if (!scanResult) return;
+
+    const vendorId = (document.getElementById("result-vendor") as HTMLSelectElement).value || undefined;
+    const orderDate = (document.getElementById("result-date") as HTMLInputElement).value;
+
+    // Gather edited line items
+    const inputs = document.querySelectorAll(".line-input") as NodeListOf<HTMLInputElement | HTMLSelectElement>;
+    const lineMap = new Map<number, any>();
+    inputs.forEach((el) => {
+      const idx = parseInt(el.dataset.idx || "0");
+      if (!lineMap.has(idx)) lineMap.set(idx, { ...scanResult.lineItems[idx] });
+      const field = el.dataset.field!;
+      lineMap.get(idx)![field] = el.value;
+    });
+
+    const lineItems = Array.from(lineMap.values()).map((li) => ({
+      description: li.description,
+      qty: li.qty.toString(),
+      unitCost: li.unitCost?.toString(),
+      totalCost: li.totalCost?.toString(),
+      itemId: li.itemId || undefined,
+    }));
+
+    const totalCost = lineItems.reduce((sum, li) => sum + parseFloat(li.totalCost || "0"), 0).toFixed(2);
+
+    const res = await fetch("/api/admin/inventory/po", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        vendorId,
+        orderDate,
+        totalCost,
+        rawDocUrl: scanResult.rawDocUrl,
+        rawDocS3Key: scanResult.rawDocS3Key,
+        status: "draft",
+        lineItems,
+      }),
+    });
+
+    const msgEl = document.getElementById("confirm-msg")!;
+    if (res.ok) {
+      msgEl.textContent = "Purchase order created! Redirecting...";
+      msgEl.className = "text-sm mt-2 text-green-600";
+      setTimeout(() => window.location.href = "/admin/inventory/purchase-orders", 1000);
+    } else {
+      const err = await res.json();
+      msgEl.textContent = err.error || "Failed to create PO";
+      msgEl.className = "text-sm mt-2 text-red-600";
+    }
+  });
+</script>

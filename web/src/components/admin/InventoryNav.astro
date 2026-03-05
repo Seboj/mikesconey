@@ -1,0 +1,36 @@
+---
+interface Props {
+  active?: string;
+}
+
+const { active } = Astro.props;
+
+const tabs = [
+  { label: "Dashboard", href: "/admin/inventory/", key: "dashboard" },
+  { label: "Vendors", href: "/admin/inventory/vendors", key: "vendors" },
+  { label: "Items", href: "/admin/inventory/items", key: "items" },
+  { label: "Scan Invoice", href: "/admin/inventory/scan", key: "scan" },
+  { label: "Purchase Orders", href: "/admin/inventory/purchase-orders", key: "purchase-orders" },
+  { label: "Menu Items", href: "/admin/inventory/menu-items", key: "menu-items" },
+  { label: "Recipes", href: "/admin/inventory/recipes", key: "recipes" },
+  { label: "Sales", href: "/admin/inventory/sales", key: "sales" },
+];
+---
+
+<div class="mb-6 border-b border-stone-200">
+  <nav class="flex gap-1 overflow-x-auto pb-px -mb-px">
+    {tabs.map((tab) => (
+      <a
+        href={tab.href}
+        class:list={[
+          "px-3 py-2 text-sm font-medium rounded-t-lg whitespace-nowrap transition-colors border-b-2",
+          active === tab.key
+            ? "border-brand-primary text-brand-primary bg-white"
+            : "border-transparent text-brand-text-muted hover:text-brand-text-heading hover:border-stone-300",
+        ]}
+      >
+        {tab.label}
+      </a>
+    ))}
+  </nav>
+</div>

@@ -41,6 +41,31 @@ export async function uploadImage(
   return { key, url };
 }
 
+export async function uploadFile(
+  buffer: Buffer,
+  contentType: string,
+  prefix: string,
+  ext: string
+): Promise<{ key: string; url: string }> {
+  const key = `${prefix}/${randomUUID()}.${ext}`;
+
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+      CacheControl: "public, max-age=31536000, immutable",
+    })
+  );
+
+  const url = CDN_BASE
+    ? `${CDN_BASE}/${key}`
+    : `https://${BUCKET}.s3.amazonaws.com/${key}`;
+
+  return { key, url };
+}
+
 export async function deleteImage(key: string): Promise<void> {
   await s3.send(
     new DeleteObjectCommand({

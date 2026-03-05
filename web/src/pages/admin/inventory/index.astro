@@ -1,0 +1,98 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../components/admin/AdminLayout.astro";
+import InventoryNav from "../../../components/admin/InventoryNav.astro";
+
+const apiUrl = process.env.API_URL || "http://localhost:3000";
+const cookie = Astro.request.headers.get("cookie") || "";
+
+let summary: any = { totalItems: 0, lowStockItems: 0, totalVendors: 0, pendingPOs: 0, totalPOValue: "0", recentActivity: [], lowStockList: [] };
+
+try {
+  const res = await fetch(`${apiUrl}/api/admin/inventory/reports/summary`, { headers: { cookie } });
+  if (res.ok) summary = await res.json();
+} catch {}
+
+const statCards = [
+  { label: "Inventory Items", value: summary.totalItems, color: "bg-blue-500" },
+  { label: "Low Stock", value: summary.lowStockItems, color: "bg-red-500" },
+  { label: "Vendors", value: summary.totalVendors, color: "bg-green-500" },
+  { label: "Pending POs", value: summary.pendingPOs, color: "bg-amber-500" },
+];
+---
+
+<AdminLayout title="Inventory" activePage="inventory">
+  <div class="mb-6">
+    <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Inventory</h1>
+    <p class="text-sm text-brand-text-muted mt-1">Manage stock, vendors, and purchase orders.</p>
+  </div>
+
+  <InventoryNav active="dashboard" />
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    {statCards.map((card) => (
+      <div class="bg-white rounded-xl p-5 shadow-sm border border-stone-200">
+        <div class="flex items-center gap-3">
+          <div class={`w-10 h-10 ${card.color} rounded-lg flex items-center justify-center`}>
+            <span class="text-white font-bold text-lg">{card.value}</span>
+          </div>
+          <div>
+            <p class="text-2xl font-bold text-brand-text-heading">{card.value}</p>
+            <p class="text-xs text-brand-text-muted">{card.label}</p>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Low Stock Alerts -->
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200">
+      <div class="px-6 py-4 border-b border-stone-200">
+        <h2 class="font-heading font-semibold text-brand-text-heading">Low Stock Alerts</h2>
+      </div>
+      {summary.lowStockList?.length > 0 ? (
+        <div class="divide-y divide-stone-100">
+          {summary.lowStockList.map((item: any) => (
+            <div class="px-6 py-3 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-brand-text-heading">{item.name}</p>
+                <p class="text-xs text-brand-text-muted">{item.category || "Uncategorized"}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-bold text-red-600">{parseFloat(item.currentQty).toFixed(1)} {item.unit}</p>
+                <p class="text-xs text-brand-text-muted">Par: {parseFloat(item.parLevel).toFixed(1)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="px-6 py-8 text-center text-brand-text-muted text-sm">All items are above par levels.</div>
+      )}
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-xl shadow-sm border border-stone-200">
+      <div class="px-6 py-4 border-b border-stone-200">
+        <h2 class="font-heading font-semibold text-brand-text-heading">Recent Activity</h2>
+      </div>
+      {summary.recentActivity?.length > 0 ? (
+        <div class="divide-y divide-stone-100">
+          {summary.recentActivity.map((act: any) => (
+            <div class="px-6 py-3 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class:list={["w-2 h-2 rounded-full", act.type === "po" ? "bg-blue-500" : "bg-green-500"]}></span>
+                <p class="text-sm text-brand-text-body">{act.description}</p>
+              </div>
+              <p class="text-xs text-brand-text-muted">{new Date(act.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="px-6 py-8 text-center text-brand-text-muted text-sm">No recent activity.</div>
+      )}
+    </div>
+  </div>
+</AdminLayout>
