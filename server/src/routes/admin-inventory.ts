@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
 import * as inv from "../services/inventory.service.js";
-import { scanInvoice, parseSalesText, suggestRecipe } from "../services/cortex.service.js";
+import { extractDocument, normalizeLineItems, matchVendor, parseSalesText, suggestRecipe } from "../services/cortex.service.js";
 import { uploadFile } from "../services/s3.service.js";
 
 export const adminInventoryRouter = Router();
@@ -24,12 +24,17 @@ adminInventoryRouter.get("/inventory/vendors", async (_req, res) => {
 });
 
 adminInventoryRouter.post("/inventory/vendors", async (req, res) => {
-  const schema = z.object({
+  const vendorSchema = z.object({
     name: z.string().min(1).max(200),
     contact: z.string().max(255).optional(),
     category: z.string().max(100).optional(),
+    address: z.string().optional(),
+    phone: z.string().max(50).optional(),
+    email: z.string().max(255).optional(),
+    paymentTerms: z.string().max(100).optional(),
+    notes: z.string().optional(),
   });
-  const parsed = schema.safeParse(req.body);
+  const parsed = vendorSchema.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() }); return; }
   const vendor = await inv.createVendor(parsed.data);
   res.status(201).json(vendor);
@@ -82,14 +87,15 @@ adminInventoryRouter.delete("/inventory/items/:id", async (req, res) => {
 
 // ── Purchase Orders ──
 
+// Stage 1: Extract document with VLM
 adminInventoryRouter.post("/inventory/po/scan", upload.single("invoice"), async (req, res) => {
   if (!req.file) { res.status(400).json({ error: "No image file provided" }); return; }
 
   try {
     const base64 = req.file.buffer.toString("base64");
-    const result = await scanInvoice(base64, req.file.mimetype);
+    const result = await extractDocument(base64, req.file.mimetype);
 
-    // Upload the raw document to S3 (non-fatal — skip in dev without creds)
+    // Upload the raw document to S3 (non-fatal)
     let rawDocUrl: string | null = null;
     let rawDocS3Key: string | null = null;
     try {
@@ -106,6 +112,57 @@ adminInventoryRouter.post("/inventory/po/scan", upload.single("invoice"), async 
     console.error("[inventory] Invoice scan error:", err);
     res.status(500).json({ error: "Failed to scan invoice", details: err.message });
   }
+});
+
+// Stage 2a: Match vendor name against existing vendors (LLM)
+adminInventoryRouter.post("/inventory/po/match-vendor", async (req, res) => {
+  const { vendorName } = req.body;
+  if (!vendorName) { res.status(400).json({ error: "vendorName is required" }); return; }
+
+  try {
+    const existingVendors = await inv.listVendors();
+    const candidates = await matchVendor(
+      vendorName,
+      existingVendors.map((v) => ({ id: v.id, name: v.name, category: v.category }))
+    );
+
+    // Add match level coloring
+    const ranked = candidates.map((c) => ({
+      ...c,
+      matchLevel: c.confidence >= 0.9 ? "green" : c.confidence >= 0.6 ? "amber" : "red",
+    }));
+
+    res.json({ extractedName: vendorName, candidates: ranked });
+  } catch (err: any) {
+    console.error("[inventory] Vendor match error:", err);
+    res.status(500).json({ error: "Failed to match vendor", details: err.message });
+  }
+});
+
+// Stage 2b: Normalize line items with LLM
+adminInventoryRouter.post("/inventory/po/normalize", async (req, res) => {
+  const { lineItems } = req.body;
+  if (!lineItems?.length) { res.status(400).json({ error: "lineItems array is required" }); return; }
+
+  try {
+    const existingItems = await inv.listInventoryItems();
+    const normalized = await normalizeLineItems(
+      lineItems,
+      existingItems.map((i) => ({ id: i.id, name: i.name, unit: i.unit, category: i.category }))
+    );
+    res.json({ items: normalized });
+  } catch (err: any) {
+    console.error("[inventory] Normalize error:", err);
+    res.status(500).json({ error: "Failed to normalize items", details: err.message });
+  }
+});
+
+// Check duplicate invoice
+adminInventoryRouter.post("/inventory/po/check-duplicate", async (req, res) => {
+  const { vendorId, invoiceNumber } = req.body;
+  if (!vendorId || !invoiceNumber) { res.json({ duplicates: [] }); return; }
+  const dupes = await inv.checkDuplicateInvoice(vendorId, invoiceNumber);
+  res.json({ duplicates: dupes });
 });
 
 adminInventoryRouter.get("/inventory/po", async (_req, res) => {
@@ -137,8 +194,14 @@ adminInventoryRouter.delete("/inventory/po/:id", async (req, res) => {
 });
 
 adminInventoryRouter.post("/inventory/po/:id/confirm", async (req, res) => {
-  const po = await inv.confirmPurchaseOrder(req.params.id);
+  const po = await inv.confirmPurchaseOrder(req.params.id, req.body);
   if (!po) { res.status(404).json({ error: "PO not found" }); return; }
+  res.json(po);
+});
+
+adminInventoryRouter.post("/inventory/po/:id/void", async (req, res) => {
+  const po = await inv.voidPurchaseOrder(req.params.id);
+  if (!po) { res.status(404).json({ error: "PO not found or not confirmed" }); return; }
   res.json(po);
 });
 

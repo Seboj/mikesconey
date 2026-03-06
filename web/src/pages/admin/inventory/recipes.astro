@@ -195,11 +195,30 @@ try {
         const suggestions = await res.json();
 
         tbody.innerHTML = "";
-        suggestions.forEach((s: any) => renderRow({
-          inventoryItemId: s.inventoryItemId,
-          qtyPerServing: s.qtyPerServing,
-          unit: s.unit,
-        }));
+        suggestions.forEach((s: any) => {
+          // Verify the item ID exists; if LLM hallucinated, try matching by name
+          let matchedId = s.inventoryItemId;
+          if (!inventoryItems.find((ii: any) => ii.id === matchedId)) {
+            const byName = inventoryItems.find((ii: any) =>
+              ii.name.toLowerCase() === (s.inventoryItemName || "").toLowerCase()
+            );
+            if (!byName) {
+              // Try fuzzy: check if inventory item name contains suggestion name or vice versa
+              const fuzzy = inventoryItems.find((ii: any) =>
+                ii.name.toLowerCase().includes((s.inventoryItemName || "").toLowerCase()) ||
+                (s.inventoryItemName || "").toLowerCase().includes(ii.name.toLowerCase())
+              );
+              matchedId = fuzzy?.id || "";
+            } else {
+              matchedId = byName.id;
+            }
+          }
+          renderRow({
+            inventoryItemId: matchedId,
+            qtyPerServing: s.qtyPerServing,
+            unit: s.unit || inventoryItems.find((ii: any) => ii.id === matchedId)?.unit || "",
+          });
+        });
       } catch {
         alert("Failed to generate recipe suggestion");
       } finally {

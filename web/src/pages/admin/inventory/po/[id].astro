@@ -1,0 +1,328 @@
+---
+export const prerender = false;
+
+import AdminLayout from "../../../../components/admin/AdminLayout.astro";
+import InventoryNav from "../../../../components/admin/InventoryNav.astro";
+
+const apiUrl = process.env.API_URL || "http://localhost:3000";
+const cookie = Astro.request.headers.get("cookie") || "";
+const { id } = Astro.params;
+
+let po: any = null;
+let vendors: any[] = [];
+let items: any[] = [];
+try {
+  const [poRes, vRes, iRes] = await Promise.all([
+    fetch(`${apiUrl}/api/admin/inventory/po/${id}`, { headers: { cookie } }),
+    fetch(`${apiUrl}/api/admin/inventory/vendors`, { headers: { cookie } }),
+    fetch(`${apiUrl}/api/admin/inventory/items`, { headers: { cookie } }),
+  ]);
+  if (poRes.ok) po = await poRes.json();
+  if (vRes.ok) vendors = await vRes.json();
+  if (iRes.ok) items = await iRes.json();
+} catch {}
+
+if (!po) return Astro.redirect("/admin/inventory/purchase-orders");
+
+const editable = po.status === "draft";
+const canVoid = po.status === "confirmed";
+
+function fmtDate(d: string | null) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+---
+
+<AdminLayout title={`PO ${po.invoiceNumber || po.id.slice(0,8)}`} activePage="inventory">
+  <div class="mb-6">
+    <div class="flex items-center gap-3">
+      <a href="/admin/inventory/purchase-orders" class="text-brand-text-muted hover:text-brand-text-body">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      <div>
+        <h1 class="font-heading text-2xl font-bold text-brand-text-heading">
+          Purchase Order {po.invoiceNumber ? `#${po.invoiceNumber}` : ""}
+        </h1>
+        <p class="text-sm text-brand-text-muted mt-0.5">
+          {po.vendor?.name || "Unknown vendor"} &middot; {fmtDate(po.orderDate)}
+        </p>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        {po.status === "draft" && (
+          <span class="px-3 py-1 text-xs font-medium bg-amber-50 text-amber-700 rounded-full">Draft</span>
+        )}
+        {po.status === "confirmed" && (
+          <span class="px-3 py-1 text-xs font-medium bg-green-50 text-green-700 rounded-full">Confirmed</span>
+        )}
+        {po.status === "voided" && (
+          <span class="px-3 py-1 text-xs font-medium bg-red-50 text-red-700 rounded-full">Voided</span>
+        )}
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Invoice Details -->
+      <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+        <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Invoice Details</h2>
+        <form id="po-form" class="space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted mb-1">Vendor</label>
+              {editable ? (
+                <select id="pf-vendor" class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm">
+                  <option value="">— Select —</option>
+                  {vendors.map((v) => <option value={v.id} selected={v.id === po.vendorId}>{v.name}</option>)}
+                </select>
+              ) : (
+                <p class="text-sm text-brand-text-body">{po.vendor?.name || "—"}</p>
+              )}
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted mb-1">Invoice #</label>
+              {editable ? (
+                <input type="text" id="pf-invoice" value={po.invoiceNumber || ""} class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+              ) : (
+                <p class="text-sm text-brand-text-body font-mono">{po.invoiceNumber || "—"}</p>
+              )}
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted mb-1">Order Date</label>
+              {editable ? (
+                <input type="date" id="pf-date" value={po.orderDate || ""} class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+              ) : (
+                <p class="text-sm text-brand-text-body">{fmtDate(po.orderDate)}</p>
+              )}
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted mb-1">Due Date</label>
+              {editable ? (
+                <input type="date" id="pf-due" value={po.dueDate || ""} class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+              ) : (
+                <p class="text-sm text-brand-text-body">{fmtDate(po.dueDate)}</p>
+              )}
+            </div>
+          </div>
+          {editable && (
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted mb-1">PO Reference</label>
+              <input type="text" id="pf-poref" value={po.poReference || ""} class="w-full border border-stone-300 rounded-lg px-3 py-2 text-sm" />
+            </div>
+          )}
+          {!editable && po.poReference && (
+            <div>
+              <label class="block text-xs font-medium text-brand-text-muted mb-1">PO Reference</label>
+              <p class="text-sm text-brand-text-body">{po.poReference}</p>
+            </div>
+          )}
+        </form>
+      </div>
+
+      <!-- Line Items -->
+      <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+        <h2 class="font-heading font-semibold text-brand-text-heading mb-4">Line Items</h2>
+        <div class="overflow-x-auto border border-stone-200 rounded-lg">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="bg-stone-50 border-b border-stone-200">
+                <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Description</th>
+                <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Raw</th>
+                <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Qty</th>
+                <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Base Units</th>
+                <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Unit $</th>
+                <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Total</th>
+                <th class="text-center px-3 py-2 text-xs font-medium text-brand-text-muted">Match</th>
+                {editable && <th class="text-center px-3 py-2 text-xs font-medium text-brand-text-muted">Inv Item</th>}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-stone-100">
+              {(po.lineItems || []).map((li: any, i: number) => {
+                const ms = li.matchStatus || "";
+                const msColor = ms === "matched" || ms === "created" ? "bg-green-100 text-green-800" :
+                                ms === "suggested" ? "bg-amber-100 text-amber-800" :
+                                ms === "new" ? "bg-blue-100 text-blue-800" : "bg-stone-100 text-stone-600";
+                return (
+                  <tr class="hover:bg-stone-50">
+                    <td class="px-3 py-2 text-sm text-brand-text-heading">{li.canonicalName || li.description}</td>
+                    <td class="px-3 py-2 text-xs text-brand-text-muted max-w-[120px] truncate" title={li.rawDescription || ""}>{li.rawDescription || "—"}</td>
+                    <td class="px-3 py-2 text-right font-mono text-sm">{li.qty}</td>
+                    <td class="px-3 py-2 text-right font-mono text-sm">{li.totalBaseUnits ? `${Number(li.totalBaseUnits).toFixed(1)} ${li.baseUnit || ""}` : "—"}</td>
+                    <td class="px-3 py-2 text-right font-mono text-sm">${Number(li.unitCost || 0).toFixed(2)}</td>
+                    <td class="px-3 py-2 text-right font-mono text-sm">${Number(li.totalCost || 0).toFixed(2)}</td>
+                    <td class="px-3 py-2 text-center">
+                      {ms ? <span class={`px-2 py-0.5 text-[10px] font-medium rounded-full ${msColor}`}>{ms}</span> : "—"}
+                    </td>
+                    {editable && (
+                      <td class="px-3 py-2">
+                        <select data-idx={i} class="line-item-match w-full border border-stone-200 rounded px-1 py-0.5 text-xs">
+                          <option value="">— None —</option>
+                          {items.map((it) => <option value={it.id} selected={it.id === li.itemId}>{it.name}</option>)}
+                        </select>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {po.receivingNotes && (
+        <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+          <h2 class="font-heading font-semibold text-brand-text-heading mb-2">Receiving Notes</h2>
+          <p class="text-sm text-brand-text-body whitespace-pre-wrap">{po.receivingNotes}</p>
+        </div>
+      )}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-4">
+      <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+        <h3 class="font-heading font-semibold text-brand-text-heading mb-3">Totals</h3>
+        <div class="space-y-2 text-sm">
+          {po.subtotal && (
+            <div class="flex justify-between">
+              <span class="text-brand-text-muted">Subtotal</span>
+              <span class="font-mono text-brand-text-body">${Number(po.subtotal).toFixed(2)}</span>
+            </div>
+          )}
+          {po.freight && Number(po.freight) > 0 && (
+            <div class="flex justify-between">
+              <span class="text-brand-text-muted">Freight</span>
+              <span class="font-mono text-brand-text-body">${Number(po.freight).toFixed(2)}</span>
+            </div>
+          )}
+          {po.tax && Number(po.tax) > 0 && (
+            <div class="flex justify-between">
+              <span class="text-brand-text-muted">Tax</span>
+              <span class="font-mono text-brand-text-body">${Number(po.tax).toFixed(2)}</span>
+            </div>
+          )}
+          <div class="flex justify-between pt-2 border-t border-stone-100 font-semibold">
+            <span class="text-brand-text-heading">Total</span>
+            <span class="font-mono text-brand-text-heading">${Number(po.totalCost || 0).toFixed(2)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+        <h3 class="font-heading font-semibold text-brand-text-heading mb-3">Payment</h3>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-brand-text-muted">Status</span>
+            <span class="font-medium capitalize">{po.paymentStatus || "unpaid"}</span>
+          </div>
+          {po.paymentDate && (
+            <div class="flex justify-between">
+              <span class="text-brand-text-muted">Paid</span>
+              <span>{fmtDate(po.paymentDate)}</span>
+            </div>
+          )}
+          {po.paymentMethod && (
+            <div class="flex justify-between">
+              <span class="text-brand-text-muted">Method</span>
+              <span>{po.paymentMethod}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {po.rawDocUrl && (
+        <a href={po.rawDocUrl} target="_blank" class="block w-full px-4 py-2 border border-stone-300 rounded-lg text-sm text-center text-brand-text-body hover:bg-stone-50">
+          View Original Document
+        </a>
+      )}
+
+      <div class="space-y-2">
+        {editable && (
+          <button id="save-po-btn" class="w-full px-4 py-2.5 bg-brand-primary text-white rounded-lg text-sm font-medium hover:bg-brand-primary-dark transition-colors">
+            Save Changes
+          </button>
+        )}
+        {editable && (
+          <button id="confirm-btn" class="w-full px-4 py-2.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+            Confirm PO
+          </button>
+        )}
+        {canVoid && (
+          <button id="void-btn" class="w-full px-4 py-2.5 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors">
+            Void PO
+          </button>
+        )}
+        {po.status !== "voided" && (
+          <button id="delete-btn" class="w-full px-4 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+            Delete PO
+          </button>
+        )}
+      </div>
+      <p id="action-msg" class="text-sm hidden"></p>
+    </div>
+  </div>
+
+  <script type="application/json" id="po-data" set:html={JSON.stringify({ id: po.id, editable, lineItems: po.lineItems })}></script>
+</AdminLayout>
+
+<script>
+  const _pd = JSON.parse(document.getElementById("po-data")?.textContent || "{}");
+  const poId: string = _pd.id;
+  const editable: boolean = _pd.editable;
+  const lineItems: any[] = _pd.lineItems || [];
+
+  function showMsg(text: string, ok: boolean) {
+    const el = document.getElementById("action-msg")!;
+    el.textContent = text;
+    el.className = `text-sm ${ok ? "text-green-600" : "text-red-600"}`;
+    el.classList.remove("hidden");
+  }
+
+  // Save changes (draft only)
+  document.getElementById("save-po-btn")?.addEventListener("click", async () => {
+    const vendorId = (document.getElementById("pf-vendor") as HTMLSelectElement)?.value || undefined;
+    const invoiceNumber = (document.getElementById("pf-invoice") as HTMLInputElement)?.value || undefined;
+    const orderDate = (document.getElementById("pf-date") as HTMLInputElement)?.value || undefined;
+    const dueDate = (document.getElementById("pf-due") as HTMLInputElement)?.value || undefined;
+    const poReference = (document.getElementById("pf-poref") as HTMLInputElement)?.value || undefined;
+
+    // Gather line item match changes
+    const updatedLines = lineItems.map((li: any, i: number) => {
+      const sel = document.querySelector(`select[data-idx="${i}"].line-item-match`) as HTMLSelectElement | null;
+      return { ...li, itemId: sel?.value || li.itemId || undefined };
+    });
+
+    const res = await fetch(`/api/admin/inventory/po/${poId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ vendorId, invoiceNumber, orderDate, dueDate, poReference, lineItems: updatedLines }),
+    });
+
+    if (res.ok) { showMsg("Saved!", true); setTimeout(() => window.location.reload(), 500); }
+    else showMsg("Failed to save", false);
+  });
+
+  // Confirm
+  document.getElementById("confirm-btn")?.addEventListener("click", async () => {
+    if (!confirm("Confirm this PO? Inventory will be updated.")) return;
+    const res = await fetch(`/api/admin/inventory/po/${poId}/confirm`, { method: "POST" });
+    if (res.ok) { showMsg("Confirmed!", true); setTimeout(() => window.location.reload(), 500); }
+    else showMsg("Failed to confirm", false);
+  });
+
+  // Void
+  document.getElementById("void-btn")?.addEventListener("click", async () => {
+    if (!confirm("Void this PO? Inventory quantities will be reversed.")) return;
+    const res = await fetch(`/api/admin/inventory/po/${poId}/void`, { method: "POST" });
+    if (res.ok) { showMsg("Voided!", true); setTimeout(() => window.location.reload(), 500); }
+    else showMsg("Failed to void", false);
+  });
+
+  // Delete
+  document.getElementById("delete-btn")?.addEventListener("click", async () => {
+    if (!confirm("Permanently delete this PO?")) return;
+    const res = await fetch(`/api/admin/inventory/po/${poId}`, { method: "DELETE" });
+    if (res.ok) window.location.href = "/admin/inventory/purchase-orders";
+    else showMsg("Failed to delete", false);
+  });
+</script>

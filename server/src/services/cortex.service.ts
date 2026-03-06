@@ -54,18 +54,62 @@ export async function cortexChat(
   return reply;
 }
 
-export async function scanInvoice(base64Image: string, mimeType: string): Promise<any> {
-  const systemPrompt = `You are an invoice data extraction system. Extract structured data from the invoice image.
-Return ONLY valid JSON with this exact schema:
+/**
+ * Stage 1: Extract raw document data using VLM (CortexVLM pool).
+ * Returns vendor info, invoice metadata, line items AS PRINTED, and totals.
+ * Never normalizes — extracts text exactly as it appears on the document.
+ */
+export async function extractDocument(
+  base64Image: string,
+  mimeType: string
+): Promise<{
+  vendor: { name: string; address: string | null; phone: string | null; email: string | null };
+  invoice: { invoiceNumber: string | null; date: string | null; dueDate: string | null; poReference: string | null };
+  lineItems: Array<{ rawDescription: string; qty: number; unitAsPrinted: string; unitPrice: number; lineTotal: number; confidence: number }>;
+  totals: { subtotal: number | null; freight: number | null; tax: number | null; total: number };
+  overallConfidence: number;
+}> {
+  const systemPrompt = `You are a document extraction system. Extract data from this invoice/receipt image EXACTLY as printed — do not normalize, rename, or reformat any text.
+
+Return ONLY valid JSON with this schema:
 {
-  "vendor": "vendor name",
-  "date": "YYYY-MM-DD",
+  "vendor": {
+    "name": "vendor name as printed",
+    "address": "full address or null",
+    "phone": "phone or null",
+    "email": "email or null"
+  },
+  "invoice": {
+    "invoiceNumber": "invoice/receipt number or null",
+    "date": "YYYY-MM-DD or null",
+    "dueDate": "YYYY-MM-DD or null",
+    "poReference": "PO reference or null"
+  },
   "lineItems": [
-    { "description": "item name", "qty": 1, "unitCost": 0.00, "totalCost": 0.00 }
+    {
+      "rawDescription": "item description EXACTLY as printed on invoice",
+      "qty": 1,
+      "unitAsPrinted": "the unit label as printed (e.g. 'CS', 'EA', '6/10#', '4/1GAL')",
+      "unitPrice": 0.00,
+      "lineTotal": 0.00,
+      "confidence": 0.95
+    }
   ],
-  "confidence": 0.95
+  "totals": {
+    "subtotal": 0.00,
+    "freight": 0.00,
+    "tax": 0.00,
+    "total": 0.00
+  },
+  "overallConfidence": 0.90
 }
-If you cannot read part of the invoice, set confidence lower and include what you can extract. No markdown, no explanation — only JSON.`;
+
+Rules:
+- Extract rawDescription VERBATIM — do not rename or simplify
+- unitAsPrinted should capture the exact pack/unit notation (e.g. "6/10#", "4/1GAL", "50LB", "CS", "EA")
+- If a field is not visible, set it to null
+- Set confidence lower for items that are hard to read
+- No markdown, no explanation — only JSON.`;
 
   const reply = await cortexChat(
     [
@@ -73,7 +117,7 @@ If you cannot read part of the invoice, set confidence lower and include what yo
       {
         role: "user",
         content: [
-          { type: "text", text: "Extract all line items from this invoice." },
+          { type: "text", text: "Extract all data from this invoice exactly as printed." },
           {
             type: "image_url",
             image_url: { url: `data:${mimeType};base64,${base64Image}` },
@@ -81,10 +125,124 @@ If you cannot read part of the invoice, set confidence lower and include what yo
         ],
       },
     ],
-    { pool: "CortexVLM", model: CORTEX_VLM_MODEL, maxTokens: 3000 }
+    { pool: "CortexVLM", model: CORTEX_VLM_MODEL, maxTokens: 4000 }
   );
 
-  // Parse JSON from reply, stripping markdown fences if present
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
+}
+
+/**
+ * Stage 2: Normalize line items using default LLM pool.
+ * Takes raw extracted items + existing inventory items, returns canonical names,
+ * pack format explosion to base units, and fuzzy match against existing items.
+ */
+export async function normalizeLineItems(
+  rawItems: Array<{ rawDescription: string; qty: number; unitAsPrinted: string; unitPrice: number; lineTotal: number }>,
+  existingItems: Array<{ id: string; name: string; unit: string; category: string | null }>
+): Promise<Array<{
+  rawDescription: string;
+  canonicalName: string;
+  category: string;
+  baseUnit: string;
+  unitsPerPack: number;
+  packsPerCase: number;
+  totalBaseUnits: number;
+  unitCostBase: number;
+  confidence: number;
+  matchStatus: "matched" | "suggested" | "new";
+  matchedItemId: string | null;
+  matchedItemName: string | null;
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+}>> {
+  const itemList = existingItems.map((i) => `- "${i.name}" (id: ${i.id}, unit: ${i.unit}, category: ${i.category || "uncategorized"})`).join("\n");
+
+  const systemPrompt = `You normalize raw invoice line items into canonical inventory items with proper base unit conversion.
+
+Existing inventory items:
+${itemList || "(none yet)"}
+
+For each raw item, return:
+1. canonicalName: SHORT clean product name for inventory tracking. Strip ALL pack sizes, counts, weights, container types, and unit info. Examples:
+   - "HEINZ KETCHUP 114OZ JUG" → "Ketchup"
+   - "BEEF PATTY 4OZ 40CT" → "Beef Patty"
+   - "FRENCH FRIES 5LB BAG CRINKLE CUT" → "French Fries Crinkle Cut"
+   - "YELLOW MUSTARD 4/1GAL" → "Yellow Mustard"
+   - "HOT DOG BUN 8CT" → "Hot Dog Bun"
+   - "COCA COLA 24/12OZ CAN" → "Coca Cola"
+   The name should read like a grocery item label — no numbers, no weights, no container words.
+2. category: food category (Protein, Produce, Dairy, Dry Goods, Condiments, Paper/Supplies, Beverage, Other)
+3. baseUnit: the MEASURABLE recipe-friendly unit. ONLY these values are allowed: oz, lb, each, gal, floz
+   - Weight items (meat, cheese, fries, etc.) → "oz" or "lb"
+   - Liquid items (ketchup, mustard, oil, etc.) → "oz" or "gal" or "floz"
+   - Countable items (buns, patties, cups, napkins) → "each"
+   - NEVER use container words as baseUnit (not "jug", "bag", "can", "box", "case", "tub", "jar", "bottle", "pouch", "carton")
+4. unitsPerPack: how many base units in one pack (e.g. "6/10#" = 6 cans of 10lb = 60lb → unitsPerPack=60 if baseUnit=lb; "114OZ JUG" = unitsPerPack=114 if baseUnit=oz)
+5. packsPerCase: if qty represents cases containing multiple packs (default 1)
+6. totalBaseUnits: qty × unitsPerPack × packsPerCase
+7. unitCostBase: lineTotal / totalBaseUnits (cost per base unit)
+8. matchStatus: "matched" if exact/near-exact match to existing item, "suggested" if similar item exists, "new" if no match
+9. matchedItemId: id of matched existing item (or null)
+10. matchedItemName: name of matched existing item (or null)
+
+IMPORTANT: If an existing inventory item matches, use its EXACT name and unit for canonicalName and baseUnit.
+
+Pack format examples:
+- "6/10#" = 6 cans × 10 lbs = 60 lb per case → baseUnit "lb", unitsPerPack 60
+- "4/1GAL" = 4 × 1 gallon = 4 gal per case → baseUnit "gal", unitsPerPack 4
+- "50LB" = 50 lb bag → baseUnit "lb", unitsPerPack 50
+- "114OZ JUG" = 114 oz jug → baseUnit "oz", unitsPerPack 114
+- "CS" with context = look at description for pack info
+- "EA" = 1 each → baseUnit "each", unitsPerPack 1
+
+Return ONLY valid JSON array. No markdown, no explanation.`;
+
+  const reply = await cortexChat(
+    [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: JSON.stringify(rawItems) },
+    ],
+    { maxTokens: 4000 }
+  );
+
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
+}
+
+/**
+ * Stage 2b: Match extracted vendor name against existing vendors using default LLM pool.
+ * Returns ranked candidates with confidence scores.
+ */
+export async function matchVendor(
+  extractedVendorName: string,
+  existingVendors: Array<{ id: string; name: string; category: string | null }>
+): Promise<Array<{ vendorId: string; vendorName: string; confidence: number }>> {
+  if (!existingVendors.length) return [];
+
+  const vendorList = existingVendors.map((v) => `- "${v.name}" (id: ${v.id}, category: ${v.category || "uncategorized"})`).join("\n");
+
+  const systemPrompt = `You match a vendor name extracted from an invoice against a list of existing vendors.
+Consider abbreviations, alternate spellings, and DBA names (e.g. "SYSCO DETROIT" matches "Sysco", "GFS" matches "Gordon Food Service").
+
+Existing vendors:
+${vendorList}
+
+Return a JSON array of matches sorted by confidence (highest first). Only include vendors with confidence > 0.3.
+Format: [{ "vendorId": "uuid", "vendorName": "name", "confidence": 0.95 }]
+
+If no reasonable match exists, return an empty array [].
+No markdown, no explanation — only JSON.`;
+
+  const reply = await cortexChat(
+    [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Match this vendor: "${extractedVendorName}"` },
+    ],
+    { maxTokens: 1000 }
+  );
+
   const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
   return JSON.parse(jsonStr);
 }
@@ -123,9 +281,13 @@ export async function suggestRecipe(
 Available inventory items:
 ${itemList}
 
+CRITICAL: The "unit" you return for each ingredient MUST be the SAME unit listed next to that inventory item above. Inventory is tracked in those base units, so the recipe must use them too. Convert your mental recipe to those units.
+
+For example: if "Ketchup" is stored in "oz", return qtyPerServing in oz (e.g. 0.5 oz), NOT in "tbsp" or "cup".
+
 Return ONLY valid JSON array:
-[{ "inventoryItemId": "uuid", "inventoryItemName": "name", "qtyPerServing": 0.5, "unit": "lb" }]
-Only use items from the list above. Be realistic for a coney island diner. No markdown, no explanation.`;
+[{ "inventoryItemId": "uuid", "inventoryItemName": "name", "qtyPerServing": 0.5, "unit": "oz" }]
+Only use items from the list above. Use EXACT ids from the list. Be realistic for a coney island diner. No markdown, no explanation.`;
 
   const reply = await cortexChat([
     { role: "system", content: systemPrompt },

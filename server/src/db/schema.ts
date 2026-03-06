@@ -54,6 +54,12 @@ export const vendors = pgTable("vendors", {
   name: varchar("name", { length: 200 }).notNull(),
   contact: varchar("contact", { length: 255 }),
   category: varchar("category", { length: 100 }),
+  address: text("address"),
+  phone: varchar("phone", { length: 50 }),
+  email: varchar("email", { length: 255 }),
+  paymentTerms: varchar("payment_terms", { length: 100 }),
+  notes: text("notes"),
+  lastOrderDate: date("last_order_date"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -65,6 +71,8 @@ export const inventoryItems = pgTable("inventory_items", {
   category: varchar("category", { length: 100 }),
   currentQty: numeric("current_qty", { precision: 12, scale: 3 }).default("0").notNull(),
   parLevel: numeric("par_level", { precision: 12, scale: 3 }).default("0").notNull(),
+  defaultVendorId: uuid("default_vendor_id").references(() => vendors.id),
+  notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -77,6 +85,16 @@ export const purchaseOrders = pgTable("purchase_orders", {
   rawDocUrl: text("raw_doc_url"),
   rawDocS3Key: text("raw_doc_s3_key"),
   status: varchar("status", { length: 20 }).default("draft").notNull(),
+  invoiceNumber: varchar("invoice_number", { length: 100 }),
+  dueDate: date("due_date"),
+  poReference: varchar("po_reference", { length: 100 }),
+  subtotal: numeric("subtotal", { precision: 12, scale: 2 }),
+  freight: numeric("freight", { precision: 12, scale: 2 }),
+  tax: numeric("tax", { precision: 12, scale: 2 }),
+  paymentStatus: varchar("payment_status", { length: 20 }).default("unpaid"),
+  paymentDate: date("payment_date"),
+  paymentMethod: varchar("payment_method", { length: 50 }),
+  receivingNotes: text("receiving_notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -89,6 +107,25 @@ export const poLineItems = pgTable("po_line_items", {
   qty: numeric("qty", { precision: 12, scale: 3 }).notNull(),
   unitCost: numeric("unit_cost", { precision: 12, scale: 2 }),
   totalCost: numeric("total_cost", { precision: 12, scale: 2 }),
+  rawDescription: varchar("raw_description", { length: 500 }),
+  canonicalName: varchar("canonical_name", { length: 200 }),
+  category: varchar("category", { length: 100 }),
+  baseUnit: varchar("base_unit", { length: 50 }),
+  unitsPerPack: numeric("units_per_pack", { precision: 12, scale: 3 }),
+  packsPerCase: numeric("packs_per_case", { precision: 12, scale: 3 }),
+  totalBaseUnits: numeric("total_base_units", { precision: 12, scale: 3 }),
+  unitCostBase: numeric("unit_cost_base", { precision: 12, scale: 4 }),
+  confidence: numeric("confidence", { precision: 5, scale: 4 }),
+  matchStatus: varchar("match_status", { length: 20 }),
+});
+
+export const vendorItemPrices = pgTable("vendor_item_prices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  vendorId: uuid("vendor_id").references(() => vendors.id, { onDelete: "cascade" }).notNull(),
+  itemId: uuid("item_id").references(() => inventoryItems.id, { onDelete: "cascade" }).notNull(),
+  packDescription: varchar("pack_description", { length: 200 }),
+  packUnitCost: numeric("pack_unit_cost", { precision: 12, scale: 2 }),
+  lastSeenDate: date("last_seen_date").defaultNow(),
 });
 
 export const menuItemsInventory = pgTable("menu_items_inventory", {

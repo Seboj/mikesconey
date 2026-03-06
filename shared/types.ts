@@ -165,6 +165,12 @@ export interface Vendor {
   name: string;
   contact: string | null;
   category: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  paymentTerms: string | null;
+  notes: string | null;
+  lastOrderDate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -176,6 +182,8 @@ export interface InventoryItem {
   category: string | null;
   currentQty: string;
   parLevel: string;
+  defaultVendorId: string | null;
+  notes: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -188,6 +196,16 @@ export interface PurchaseOrder {
   rawDocUrl: string | null;
   rawDocS3Key: string | null;
   status: string;
+  invoiceNumber: string | null;
+  dueDate: string | null;
+  poReference: string | null;
+  subtotal: string | null;
+  freight: string | null;
+  tax: string | null;
+  paymentStatus: string | null;
+  paymentDate: string | null;
+  paymentMethod: string | null;
+  receivingNotes: string | null;
   createdAt: string;
   updatedAt: string;
   vendor?: Vendor;
@@ -202,6 +220,16 @@ export interface POLineItem {
   qty: string;
   unitCost: string | null;
   totalCost: string | null;
+  rawDescription: string | null;
+  canonicalName: string | null;
+  category: string | null;
+  baseUnit: string | null;
+  unitsPerPack: string | null;
+  packsPerCase: string | null;
+  totalBaseUnits: string | null;
+  unitCostBase: string | null;
+  confidence: string | null;
+  matchStatus: string | null;
 }
 
 export interface MenuItemInventory {
@@ -247,16 +275,90 @@ export interface UsageRecord {
   inventoryItem?: InventoryItem;
 }
 
-export interface VLMInvoiceResult {
-  vendor: string;
-  date: string;
-  lineItems: Array<{
-    description: string;
-    qty: number;
-    unitCost: number;
-    totalCost: number;
-  }>;
+export interface VendorItemPrice {
+  id: string;
+  vendorId: string;
+  itemId: string;
+  packDescription: string | null;
+  packUnitCost: string | null;
+  lastSeenDate: string | null;
+}
+
+// ── 4-Stage PO Pipeline Types ──
+
+export interface ExtractedVendorInfo {
+  name: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+}
+
+export interface ExtractedInvoiceMeta {
+  invoiceNumber: string | null;
+  date: string | null;
+  dueDate: string | null;
+  poReference: string | null;
+}
+
+export interface ExtractedLineItem {
+  rawDescription: string;
+  qty: number;
+  unitAsPrinted: string;
+  unitPrice: number;
+  lineTotal: number;
   confidence: number;
+}
+
+export interface ExtractedTotals {
+  subtotal: number | null;
+  freight: number | null;
+  tax: number | null;
+  total: number;
+}
+
+export interface DocumentExtractionResult {
+  vendor: ExtractedVendorInfo;
+  invoice: ExtractedInvoiceMeta;
+  lineItems: ExtractedLineItem[];
+  totals: ExtractedTotals;
+  overallConfidence: number;
+  rawDocUrl?: string | null;
+  rawDocS3Key?: string | null;
+}
+
+export interface NormalizedLineItem {
+  rawDescription: string;
+  canonicalName: string;
+  category: string;
+  baseUnit: string;
+  unitsPerPack: number;
+  packsPerCase: number;
+  totalBaseUnits: number;
+  unitCostBase: number;
+  confidence: number;
+  matchStatus: "matched" | "suggested" | "new";
+  matchedItemId: string | null;
+  matchedItemName: string | null;
+  // Carry forward from extraction
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface NormalizeResult {
+  items: NormalizedLineItem[];
+}
+
+export interface VendorMatchCandidate {
+  vendorId: string;
+  vendorName: string;
+  confidence: number;
+  matchLevel: "green" | "amber" | "red";
+}
+
+export interface VendorMatchResult {
+  candidates: VendorMatchCandidate[];
+  extractedName: string;
 }
 
 export interface SalesParsed {

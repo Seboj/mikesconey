@@ -12,6 +12,23 @@ try {
   const res = await fetch(`${apiUrl}/api/admin/inventory/po`, { headers: { cookie } });
   if (res.ok) pos = await res.json();
 } catch {}
+
+function statusBadge(po: any) {
+  const s = po.status;
+  if (s === "confirmed") return { class: "bg-green-50 text-green-700", label: "Confirmed" };
+  if (s === "voided") return { class: "bg-red-50 text-red-700", label: "Voided" };
+  return { class: "bg-amber-50 text-amber-700", label: "Draft" };
+}
+
+function paymentBadge(status: string | null) {
+  if (!status || status === "unpaid") return { class: "bg-stone-100 text-stone-600", label: "Unpaid" };
+  if (status === "paid") return { class: "bg-green-50 text-green-700", label: "Paid" };
+  if (status === "cod") return { class: "bg-blue-50 text-blue-700", label: "COD" };
+  if (status === "partial") return { class: "bg-amber-50 text-amber-700", label: "Partial" };
+  if (status === "voided") return { class: "bg-red-50 text-red-700", label: "Voided" };
+  if (status === "disputed") return { class: "bg-red-50 text-red-700", label: "Disputed" };
+  return { class: "bg-stone-100 text-stone-600", label: status };
+}
 ---
 
 <AdminLayout title="Purchase Orders" activePage="inventory">
@@ -35,34 +52,45 @@ try {
           <tr class="border-b border-stone-200">
             <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Date</th>
             <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Vendor</th>
+            <th class="text-left px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Invoice #</th>
             <th class="text-right px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Total</th>
             <th class="text-center px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Status</th>
+            <th class="text-center px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Payment</th>
             <th class="text-right px-6 py-3 text-xs font-medium text-brand-text-muted uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-stone-100">
-          {pos.map((po) => (
-            <tr class="hover:bg-stone-50">
-              <td class="px-6 py-3 text-brand-text-body">{new Date(po.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td>
-              <td class="px-6 py-3 font-medium text-brand-text-heading">{po.vendor?.name || "Unknown"}</td>
-              <td class="px-6 py-3 text-right font-mono text-brand-text-body">${parseFloat(po.totalCost || "0").toFixed(2)}</td>
-              <td class="px-6 py-3 text-center">
-                {po.status === "confirmed" ? (
-                  <span class="px-2 py-0.5 text-xs font-medium bg-green-50 text-green-700 rounded-full">Confirmed</span>
-                ) : (
-                  <span class="px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-700 rounded-full">Draft</span>
-                )}
-              </td>
-              <td class="px-6 py-3 text-right space-x-2">
-                {po.status === "draft" && (
-                  <button class="confirm-po text-green-600 hover:text-green-800 text-xs font-medium" data-id={po.id}>Confirm</button>
-                )}
-                <button class="delete-po text-red-600 hover:text-red-800 text-xs font-medium" data-id={po.id}>Delete</button>
-              </td>
-            </tr>
-          ))}
+          {pos.map((po) => {
+            const sb = statusBadge(po);
+            const pb = paymentBadge(po.paymentStatus);
+            return (
+              <tr class="hover:bg-stone-50 cursor-pointer" onclick={`if(!event.target.closest('button'))window.location='/admin/inventory/po/${po.id}'`}>
+                <td class="px-6 py-3 text-brand-text-body">{new Date(po.orderDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td>
+                <td class="px-6 py-3 font-medium text-brand-text-heading">{po.vendor?.name || "Unknown"}</td>
+                <td class="px-6 py-3 text-brand-text-body font-mono text-xs">{po.invoiceNumber || "—"}</td>
+                <td class="px-6 py-3 text-right font-mono text-brand-text-body">${parseFloat(po.totalCost || "0").toFixed(2)}</td>
+                <td class="px-6 py-3 text-center">
+                  <span class={`px-2 py-0.5 text-xs font-medium rounded-full ${sb.class}`}>{sb.label}</span>
+                </td>
+                <td class="px-6 py-3 text-center">
+                  <span class={`px-2 py-0.5 text-xs font-medium rounded-full ${pb.class}`}>{pb.label}</span>
+                </td>
+                <td class="px-6 py-3 text-right space-x-2">
+                  {po.status === "draft" && (
+                    <button class="confirm-po text-green-600 hover:text-green-800 text-xs font-medium" data-id={po.id}>Confirm</button>
+                  )}
+                  {po.status === "confirmed" && (
+                    <button class="void-po text-amber-600 hover:text-amber-800 text-xs font-medium" data-id={po.id}>Void</button>
+                  )}
+                  {po.status !== "voided" && (
+                    <button class="delete-po text-red-600 hover:text-red-800 text-xs font-medium" data-id={po.id}>Delete</button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
           {pos.length === 0 && (
-            <tr><td colspan="5" class="px-6 py-8 text-center text-brand-text-muted">No purchase orders yet. <a href="/admin/inventory/scan" class="text-brand-primary hover:underline">Scan an invoice</a> to get started.</td></tr>
+            <tr><td colspan="7" class="px-6 py-8 text-center text-brand-text-muted">No purchase orders yet. <a href="/admin/inventory/scan" class="text-brand-primary hover:underline">Scan an invoice</a> to get started.</td></tr>
           )}
         </tbody>
       </table>
@@ -78,6 +106,16 @@ try {
       const res = await fetch(`/api/admin/inventory/po/${id}/confirm`, { method: "POST" });
       if (res.ok) window.location.reload();
       else alert("Failed to confirm PO");
+    });
+  });
+
+  document.querySelectorAll(".void-po").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Void this PO? Inventory quantities will be reversed.")) return;
+      const id = (btn as HTMLElement).dataset.id;
+      const res = await fetch(`/api/admin/inventory/po/${id}/void`, { method: "POST" });
+      if (res.ok) window.location.reload();
+      else alert("Failed to void PO");
     });
   });
 

@@ -6,6 +6,7 @@ const {
   inventoryItems,
   purchaseOrders,
   poLineItems,
+  vendorItemPrices,
   menuItemsInventory,
   recipes,
   salesEntries,
@@ -13,18 +14,55 @@ const {
   usageRecords,
 } = schema;
 
+// ── Unit Conversion ──
+
+const UNIT_TO_OZ: Record<string, number> = {
+  oz: 1, lb: 16, kg: 35.274, g: 0.03527,
+  gal: 128, qt: 32, pt: 16, cup: 8, floz: 1,
+  tbsp: 0.5, tsp: 0.1667, ml: 0.03381, l: 33.814,
+  each: 1, ea: 1, slice: 1, loaf: 1, bag: 1, can: 1, bunch: 1,
+};
+
+function convertUnits(qty: number, fromUnit: string, toUnit: string): number {
+  const from = fromUnit.toLowerCase().replace(/s$/, "");
+  const to = toUnit.toLowerCase().replace(/s$/, "");
+  if (from === to) return qty;
+  const fromFactor = UNIT_TO_OZ[from];
+  const toFactor = UNIT_TO_OZ[to];
+  if (!fromFactor || !toFactor) return qty; // can't convert, pass through
+  return (qty * fromFactor) / toFactor;
+}
+
 // ── Vendors ──
 
 export async function listVendors() {
   return db.select().from(vendors).orderBy(vendors.name);
 }
 
-export async function createVendor(data: { name: string; contact?: string; category?: string }) {
+export async function createVendor(data: {
+  name: string;
+  contact?: string;
+  category?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  paymentTerms?: string;
+  notes?: string;
+}) {
   const [row] = await db.insert(vendors).values(data).returning();
   return row;
 }
 
-export async function updateVendor(id: string, data: Partial<{ name: string; contact: string | null; category: string | null }>) {
+export async function updateVendor(id: string, data: Partial<{
+  name: string;
+  contact: string | null;
+  category: string | null;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  paymentTerms: string | null;
+  notes: string | null;
+}>) {
   const [row] = await db.update(vendors).set({ ...data, updatedAt: new Date() }).where(eq(vendors.id, id)).returning();
   return row;
 }
@@ -85,7 +123,31 @@ export async function createPurchaseOrder(data: {
   rawDocUrl?: string;
   rawDocS3Key?: string;
   status?: string;
-  lineItems?: Array<{ itemId?: string; description: string; qty: string; unitCost?: string; totalCost?: string }>;
+  invoiceNumber?: string;
+  dueDate?: string;
+  poReference?: string;
+  subtotal?: string;
+  freight?: string;
+  tax?: string;
+  paymentStatus?: string;
+  receivingNotes?: string;
+  lineItems?: Array<{
+    itemId?: string;
+    description: string;
+    qty: string;
+    unitCost?: string;
+    totalCost?: string;
+    rawDescription?: string;
+    canonicalName?: string;
+    category?: string;
+    baseUnit?: string;
+    unitsPerPack?: string;
+    packsPerCase?: string;
+    totalBaseUnits?: string;
+    unitCostBase?: string;
+    confidence?: string;
+    matchStatus?: string;
+  }>;
 }) {
   const { lineItems, ...poData } = data;
   const [po] = await db.insert(purchaseOrders).values(poData).returning();
@@ -104,7 +166,31 @@ export async function updatePurchaseOrder(id: string, data: Partial<{
   orderDate: string;
   totalCost: string;
   status: string;
-  lineItems: Array<{ itemId?: string; description: string; qty: string; unitCost?: string; totalCost?: string }>;
+  invoiceNumber: string;
+  dueDate: string;
+  poReference: string;
+  subtotal: string;
+  freight: string;
+  tax: string;
+  paymentStatus: string;
+  receivingNotes: string;
+  lineItems: Array<{
+    itemId?: string;
+    description: string;
+    qty: string;
+    unitCost?: string;
+    totalCost?: string;
+    rawDescription?: string;
+    canonicalName?: string;
+    category?: string;
+    baseUnit?: string;
+    unitsPerPack?: string;
+    packsPerCase?: string;
+    totalBaseUnits?: string;
+    unitCostBase?: string;
+    confidence?: string;
+    matchStatus?: string;
+  }>;
 }>) {
   const { lineItems, ...poData } = data;
   const [po] = await db.update(purchaseOrders).set({ ...poData, updatedAt: new Date() }).where(eq(purchaseOrders.id, id)).returning();
@@ -127,27 +213,131 @@ export async function deletePurchaseOrder(id: string) {
   return row;
 }
 
-export async function confirmPurchaseOrder(id: string) {
+export async function confirmPurchaseOrder(id: string, confirmData?: {
+  paymentStatus?: string;
+  receivingNotes?: string;
+}) {
   const po = await getPurchaseOrder(id);
   if (!po) return null;
 
-  // Update PO status
-  await db.update(purchaseOrders).set({ status: "confirmed", updatedAt: new Date() }).where(eq(purchaseOrders.id, id));
+  // Update PO status + optional confirm-time fields
+  await db.update(purchaseOrders).set({
+    status: "confirmed",
+    paymentStatus: confirmData?.paymentStatus || po.paymentStatus || "unpaid",
+    receivingNotes: confirmData?.receivingNotes || po.receivingNotes,
+    updatedAt: new Date(),
+  }).where(eq(purchaseOrders.id, id));
 
-  // Add quantities to inventory for matched items
+  // Update vendor's last order date
+  if (po.vendorId) {
+    await db.update(vendors).set({
+      lastOrderDate: po.orderDate,
+      updatedAt: new Date(),
+    }).where(eq(vendors.id, po.vendorId));
+  }
+
+  // Process each line item: auto-create inventory items for unmatched, then update quantities
+  const CONTAINER_UNITS = new Set(["jug", "bag", "can", "box", "case", "tub", "jar", "bottle", "pouch", "carton", "pail", "bucket"]);
+
   for (const line of po.lineItems || []) {
-    if (line.itemId) {
+    let itemId = line.itemId;
+
+    // Auto-create inventory item if no match exists
+    if (!itemId && (line.canonicalName || line.description)) {
+      // Sanitize baseUnit: if LLM returned a container type, fall back to "oz" for liquids/weight or "each" for countables
+      let safeUnit = (line.baseUnit || "each").toLowerCase();
+      if (CONTAINER_UNITS.has(safeUnit)) {
+        safeUnit = "each";
+      }
+
+      const [newItem] = await db.insert(inventoryItems).values({
+        name: line.canonicalName || line.description,
+        unit: safeUnit,
+        category: line.category || null,
+        currentQty: "0",
+        defaultVendorId: po.vendorId || null,
+      }).returning();
+      itemId = newItem.id;
+
+      // Update the line item to reference the new inventory item
+      await db.update(poLineItems).set({
+        itemId: newItem.id,
+        matchStatus: "created",
+      }).where(eq(poLineItems.id, line.id));
+    }
+
+    if (itemId) {
+      const addQty = line.totalBaseUnits || line.qty;
       await db
         .update(inventoryItems)
         .set({
-          currentQty: sql`${inventoryItems.currentQty} + ${line.qty}`,
+          currentQty: sql`${inventoryItems.currentQty} + ${addQty}`,
+          updatedAt: new Date(),
+        })
+        .where(eq(inventoryItems.id, itemId));
+
+      // Upsert vendor-item price record
+      if (po.vendorId) {
+        const existing = await db.select().from(vendorItemPrices)
+          .where(and(eq(vendorItemPrices.vendorId, po.vendorId), eq(vendorItemPrices.itemId, itemId)));
+        if (existing.length) {
+          await db.update(vendorItemPrices).set({
+            packDescription: line.rawDescription || line.description,
+            packUnitCost: line.unitCost,
+            lastSeenDate: po.orderDate,
+          }).where(eq(vendorItemPrices.id, existing[0].id));
+        } else {
+          await db.insert(vendorItemPrices).values({
+            vendorId: po.vendorId,
+            itemId,
+            packDescription: line.rawDescription || line.description,
+            packUnitCost: line.unitCost,
+            lastSeenDate: po.orderDate,
+          });
+        }
+      }
+    }
+  }
+
+  return getPurchaseOrder(id);
+}
+
+export async function voidPurchaseOrder(id: string) {
+  const po = await getPurchaseOrder(id);
+  if (!po) return null;
+  if (po.status !== "confirmed") return null;
+
+  // Reverse inventory quantities
+  for (const line of po.lineItems || []) {
+    if (line.itemId) {
+      const subtractQty = line.totalBaseUnits || line.qty;
+      await db
+        .update(inventoryItems)
+        .set({
+          currentQty: sql`GREATEST(${inventoryItems.currentQty} - ${subtractQty}, 0)`,
           updatedAt: new Date(),
         })
         .where(eq(inventoryItems.id, line.itemId));
     }
   }
 
+  // Set status to voided
+  await db.update(purchaseOrders).set({
+    status: "voided",
+    paymentStatus: "voided",
+    updatedAt: new Date(),
+  }).where(eq(purchaseOrders.id, id));
+
   return getPurchaseOrder(id);
+}
+
+export async function checkDuplicateInvoice(vendorId: string, invoiceNumber: string) {
+  const existing = await db.select().from(purchaseOrders)
+    .where(and(
+      eq(purchaseOrders.vendorId, vendorId),
+      eq(purchaseOrders.invoiceNumber, invoiceNumber),
+    ));
+  return existing.filter((po) => po.status !== "voided");
 }
 
 // ── Menu Items (Inventory) ──
@@ -220,11 +410,17 @@ export async function createSalesEntry(data: {
     await db.insert(salesLines).values(lines.map((l) => ({ ...l, entryId: entry.id })));
   }
 
-  // Calculate usage from recipes
+  // Calculate usage from recipes — convert recipe units to inventory base units
+  const allItems = await db.select().from(inventoryItems);
+  const itemMap = Object.fromEntries(allItems.map((i) => [i.id, i]));
+
   for (const line of lines) {
     const recipeRows = await db.select().from(recipes).where(eq(recipes.menuItemId, line.menuItemId));
     for (const r of recipeRows) {
-      const consumed = parseFloat(r.qtyPerServing) * line.qtySold;
+      const recipeQty = parseFloat(r.qtyPerServing) * line.qtySold;
+      const invItem = itemMap[r.inventoryItemId];
+      // Convert recipe unit to inventory base unit if they differ
+      const consumed = invItem ? convertUnits(recipeQty, r.unit, invItem.unit) : recipeQty;
       await db.insert(usageRecords).values({
         usageDate: entry.saleDate,
         inventoryItemId: r.inventoryItemId,
