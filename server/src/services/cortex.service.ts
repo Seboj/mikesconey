@@ -1,5 +1,6 @@
 const CORTEX_URL = "https://cortexapi.nfinitmonkeys.com/v1/chat/completions";
 const CORTEX_MODEL = process.env.CORTEX_MODEL || "Qwen/Qwen3-14B";
+const CORTEX_VLM_MODEL = process.env.CORTEX_VLM_MODEL || "Qwen/Qwen2.5-VL-7B-Instruct";
 
 interface CortexMessage {
   role: "system" | "user" | "assistant";
@@ -8,6 +9,7 @@ interface CortexMessage {
 
 interface CortexOptions {
   pool?: string;
+  model?: string;
   maxTokens?: number;
   temperature?: number;
 }
@@ -31,7 +33,7 @@ export async function cortexChat(
     method: "POST",
     headers,
     body: JSON.stringify({
-      model: CORTEX_MODEL,
+      model: options.model || CORTEX_MODEL,
       messages,
       max_tokens: options.maxTokens || 2000,
       temperature: options.temperature ?? 0.2,
@@ -79,7 +81,7 @@ If you cannot read part of the invoice, set confidence lower and include what yo
         ],
       },
     ],
-    { pool: "CortexVLM", maxTokens: 3000 }
+    { pool: "CortexVLM", model: CORTEX_VLM_MODEL, maxTokens: 3000 }
   );
 
   // Parse JSON from reply, stripping markdown fences if present

@@ -89,11 +89,19 @@ adminInventoryRouter.post("/inventory/po/scan", upload.single("invoice"), async 
     const base64 = req.file.buffer.toString("base64");
     const result = await scanInvoice(base64, req.file.mimetype);
 
-    // Upload the raw document to S3
-    const ext = req.file.mimetype.split("/")[1] || "jpg";
-    const { key, url } = await uploadFile(req.file.buffer, req.file.mimetype, "invoices", ext);
+    // Upload the raw document to S3 (non-fatal — skip in dev without creds)
+    let rawDocUrl: string | null = null;
+    let rawDocS3Key: string | null = null;
+    try {
+      const ext = req.file.mimetype.split("/")[1] || "jpg";
+      const uploaded = await uploadFile(req.file.buffer, req.file.mimetype, "invoices", ext);
+      rawDocUrl = uploaded.url;
+      rawDocS3Key = uploaded.key;
+    } catch (s3Err) {
+      console.warn("[inventory] S3 upload skipped:", (s3Err as Error).message);
+    }
 
-    res.json({ ...result, rawDocUrl: url, rawDocS3Key: key });
+    res.json({ ...result, rawDocUrl, rawDocS3Key });
   } catch (err: any) {
     console.error("[inventory] Invoice scan error:", err);
     res.status(500).json({ error: "Failed to scan invoice", details: err.message });
