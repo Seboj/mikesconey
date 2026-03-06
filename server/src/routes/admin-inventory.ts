@@ -139,11 +139,7 @@ adminInventoryRouter.post("/inventory/po/scan", upload.single("invoice"), async 
     }
 
     const base64 = imgBuffer.toString("base64");
-    const rawResult = await extractDocument(base64, imgMime);
-
-    // Verification pass: send extracted text to regular LLM to fix OCR errors
-    console.log("[inventory] Running LLM verification pass...");
-    const result = await verifyExtraction(rawResult);
+    const result = await extractDocument(base64, imgMime);
 
     // Upload the original (full-res) document to S3 (non-fatal)
     let rawDocUrl: string | null = null;

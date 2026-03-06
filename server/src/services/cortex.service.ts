@@ -249,6 +249,10 @@ export async function normalizeLineItems(
 
   const systemPrompt = `You normalize raw invoice line items into canonical inventory items with proper base unit conversion.
 
+FIRST: Fix any obvious OCR misspellings in rawDescription before normalizing. These are food/restaurant supply items.
+Common OCR errors: CARBAGE→CABBAGE, ONTONG→ONION, LETTICE→LETTUCE, SPINICH→SPINACH, TOMATOE→TOMATO, BROCOLI→BROCCOLI, POTATOS→POTATOES, CHEDAR→CHEDDAR, etc.
+Correct the rawDescription field in your output with fixed spelling (preserve pack sizes, codes, and formatting).
+
 Existing inventory items:
 ${itemList || "(none yet)"}
 
