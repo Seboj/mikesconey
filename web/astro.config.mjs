@@ -10,17 +10,5 @@ export default defineConfig({
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()],
-    server: {
-      proxy: {
-        "/api": {
-          target: process.env.API_URL || "http://localhost:3000",
-          changeOrigin: true,
-        },
-        "/uploads": {
-          target: process.env.API_URL || "http://localhost:3000",
-          changeOrigin: true,
-        },
-      },
-    },
   },
 });

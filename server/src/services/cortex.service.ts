@@ -1,6 +1,22 @@
 const CORTEX_URL = "https://cortexapi.nfinitmonkeys.com/v1/chat/completions";
 const CORTEX_MODEL = process.env.CORTEX_MODEL || "Qwen/Qwen3-14B";
-const CORTEX_VLM_MODEL = process.env.CORTEX_VLM_MODEL || "Qwen/Qwen2.5-VL-7B-Instruct";
+const CORTEX_VLM_MODEL = process.env.CORTEX_VLM_MODEL || "QuantTrio/Qwen3-VL-32B-Instruct-AWQ";
+
+/** Strip <think> tags, markdown fences, and extract valid JSON from LLM replies */
+function extractJSON(reply: string): string {
+  let s = reply;
+  // Strip <think>...</think> reasoning blocks (Qwen3 models)
+  s = s.replace(/<think>[\s\S]*?<\/think>/g, "");
+  // Strip markdown code fences
+  s = s.replace(/```json\n?/g, "").replace(/```\n?/g, "");
+  s = s.trim();
+  // If still not starting with { or [, try to find JSON in the text
+  if (!s.startsWith("{") && !s.startsWith("[")) {
+    const jsonMatch = s.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
+    if (jsonMatch) s = jsonMatch[1];
+  }
+  return s;
+}
 
 interface CortexMessage {
   role: "system" | "user" | "assistant";
@@ -18,7 +34,8 @@ export async function cortexChat(
   messages: CortexMessage[],
   options: CortexOptions = {}
 ): Promise<string> {
-  const apiKey = process.env.CORTEX_API_KEY;
+  // Strip smart quotes and whitespace — common copy-paste issue from formatted text
+  const apiKey = process.env.CORTEX_API_KEY?.replace(/[\u2018\u2019\u201C\u201D'"]/g, "").trim();
   if (!apiKey) throw new Error("CORTEX_API_KEY not configured");
 
   const headers: Record<string, string> = {
@@ -40,17 +57,32 @@ export async function cortexChat(
     }),
   });
 
+  const rawText = await response.text();
+
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Cortex API error ${response.status}: ${text}`);
+    console.error(`[cortex] API error ${response.status}:`, rawText.substring(0, 500));
+    throw new Error(`Cortex API error ${response.status}: ${rawText.substring(0, 200)}`);
   }
 
-  const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-  };
+  // Detect HTML error pages returned with 200 status (reverse proxy errors)
+  if (rawText.trimStart().startsWith("<!") || rawText.trimStart().startsWith("<html")) {
+    console.error("[cortex] Received HTML instead of JSON:", rawText.substring(0, 300));
+    throw new Error(`Cortex returned HTML error page instead of JSON: ${rawText.substring(0, 150)}`);
+  }
+
+  let data: { choices?: Array<{ message?: { content?: string } }> };
+  try {
+    data = JSON.parse(rawText);
+  } catch {
+    console.error("[cortex] Failed to parse response JSON:", rawText.substring(0, 500));
+    throw new Error(`Cortex returned invalid JSON: ${rawText.substring(0, 150)}`);
+  }
 
   const reply = data.choices?.[0]?.message?.content;
-  if (!reply) throw new Error("No response from Cortex");
+  if (!reply) {
+    console.error("[cortex] No content in response:", JSON.stringify(data).substring(0, 300));
+    throw new Error("No response from Cortex");
+  }
   return reply;
 }
 
@@ -128,8 +160,14 @@ Rules:
     { pool: "CortexVLM", model: CORTEX_VLM_MODEL, maxTokens: 4000 }
   );
 
-  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-  return JSON.parse(jsonStr);
+  console.log("[cortex] VLM raw reply (first 300 chars):", reply.substring(0, 300));
+  const jsonStr = extractJSON(reply);
+  try {
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    console.error("[cortex] VLM JSON parse failed. Cleaned text:", jsonStr.substring(0, 500));
+    throw new Error(`Failed to parse VLM extraction response: ${(err as Error).message}`);
+  }
 }
 
 /**
@@ -207,7 +245,7 @@ Return ONLY valid JSON array. No markdown, no explanation.`;
     { maxTokens: 4000 }
   );
 
-  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const jsonStr = extractJSON(reply);
   return JSON.parse(jsonStr);
 }
 
@@ -243,7 +281,7 @@ No markdown, no explanation — only JSON.`;
     { maxTokens: 1000 }
   );
 
-  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const jsonStr = extractJSON(reply);
   return JSON.parse(jsonStr);
 }
 
@@ -266,7 +304,7 @@ Match user input to the closest menu item. If no match, omit menuItemId. No mark
     { role: "user", content: text },
   ]);
 
-  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const jsonStr = extractJSON(reply);
   return JSON.parse(jsonStr);
 }
 
@@ -306,7 +344,7 @@ No markdown, no explanation — only JSON.`;
     { role: "user", content: JSON.stringify(csvItemNames) },
   ]);
 
-  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const jsonStr = extractJSON(reply);
   return JSON.parse(jsonStr);
 }
 
@@ -338,6 +376,6 @@ No markdown, no explanation.`;
     { role: "user", content: `Suggest a recipe for: ${menuItemName}` },
   ]);
 
-  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  const jsonStr = extractJSON(reply);
   return JSON.parse(jsonStr);
 }

@@ -15,19 +15,27 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
     const headers = new Headers(request.headers);
     headers.set("host", new URL(API_URL).host);
 
-    const proxyRes = await fetch(target, {
-      method: request.method,
-      headers,
-      body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
-      // @ts-expect-error -- duplex required for streaming request bodies
-      duplex: request.body ? "half" : undefined,
-    });
+    try {
+      const proxyRes = await fetch(target, {
+        method: request.method,
+        headers,
+        body: request.method !== "GET" && request.method !== "HEAD" ? request.body : undefined,
+        // @ts-expect-error -- duplex required for streaming request bodies
+        duplex: request.body ? "half" : undefined,
+      });
 
-    return new Response(proxyRes.body, {
-      status: proxyRes.status,
-      statusText: proxyRes.statusText,
-      headers: proxyRes.headers,
-    });
+      return new Response(proxyRes.body, {
+        status: proxyRes.status,
+        statusText: proxyRes.statusText,
+        headers: proxyRes.headers,
+      });
+    } catch (err: any) {
+      console.error(`[proxy] Failed to proxy ${request.method} ${path}:`, err.message);
+      return new Response(JSON.stringify({ error: "API proxy error", details: err.message }), {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
   }
 
   if (SITE_MODE === "coming_soon") {
