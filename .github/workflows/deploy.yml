@@ -34,9 +34,14 @@ jobs:
         id: ecr-login
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Determine version
+        id: version
+        run: echo "VERSION=$(git describe --tags --always --dirty)" >> $GITHUB_OUTPUT
+
       - name: Build and push API image
         run: |
           docker build --platform linux/amd64 \
+                       --build-arg APP_VERSION=${{ steps.version.outputs.VERSION }} \
                        -t $ECR_REGISTRY/$API_REPO:${{ github.sha }} \
                        -t $ECR_REGISTRY/$API_REPO:latest \
                        -f server/Dockerfile.prod server/
@@ -45,6 +50,7 @@ jobs:
       - name: Build and push Web image
         run: |
           docker build --platform linux/amd64 \
+                       --build-arg APP_VERSION=${{ steps.version.outputs.VERSION }} \
                        -t $ECR_REGISTRY/$WEB_REPO:${{ github.sha }} \
                        -t $ECR_REGISTRY/$WEB_REPO:latest \
                        -f web/Dockerfile.prod .

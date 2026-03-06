@@ -12,3 +12,7 @@ healthRouter.get("/health", async (_req, res) => {
     res.status(503).json({ status: "error", db: "disconnected" });
   }
 });
+
+healthRouter.get("/version", (_req, res) => {
+  res.json({ version: process.env.APP_VERSION || "dev" });
+});
