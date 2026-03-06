@@ -15,6 +15,13 @@
       "when": 1772416224869,
       "tag": "0001_hesitant_elektra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772820992774,
+      "tag": "0002_numerous_gateway",
+      "breakpoints": true
     }
   ]
 }
