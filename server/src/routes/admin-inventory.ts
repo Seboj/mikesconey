@@ -284,7 +284,29 @@ adminInventoryRouter.post("/inventory/recipes/:menuItemId/suggest", async (req, 
 
   const items = await inv.listInventoryItems();
   try {
-    const suggestion = await suggestRecipe(mi.name, items.map((i) => ({ id: i.id, name: i.name, unit: i.unit })));
+    const raw = await suggestRecipe(mi.name, items.map((i) => ({ id: i.id, name: i.name, unit: i.unit })));
+
+    // Server-side matching: verify LLM-provided IDs and try fuzzy match for missing ones
+    const suggestion = raw.map((s) => {
+      const exactMatch = s.inventoryItemId ? items.find((i) => i.id === s.inventoryItemId) : null;
+      if (exactMatch) {
+        return { ...s, inventoryItemName: exactMatch.name, unit: exactMatch.unit, inInventory: true };
+      }
+      // Fuzzy match by name
+      const byName = items.find((i) => i.name.toLowerCase() === (s.ingredientName || "").toLowerCase());
+      if (byName) {
+        return { ...s, inventoryItemId: byName.id, inventoryItemName: byName.name, unit: byName.unit, inInventory: true };
+      }
+      const fuzzy = items.find((i) =>
+        i.name.toLowerCase().includes((s.ingredientName || "").toLowerCase()) ||
+        (s.ingredientName || "").toLowerCase().includes(i.name.toLowerCase())
+      );
+      if (fuzzy) {
+        return { ...s, inventoryItemId: fuzzy.id, inventoryItemName: fuzzy.name, unit: fuzzy.unit, inInventory: true };
+      }
+      return { ...s, inventoryItemId: null, inventoryItemName: null, inInventory: false };
+    });
+
     res.json(suggestion);
   } catch (err: any) {
     console.error("[inventory] Recipe suggestion error:", err);

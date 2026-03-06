@@ -273,21 +273,24 @@ Match user input to the closest menu item. If no match, omit menuItemId. No mark
 export async function suggestRecipe(
   menuItemName: string,
   inventoryItems: Array<{ id: string; name: string; unit: string }>
-): Promise<Array<{ inventoryItemId: string; inventoryItemName: string; qtyPerServing: number; unit: string }>> {
+): Promise<Array<{ ingredientName: string; inventoryItemId: string | null; inventoryItemName: string | null; qtyPerServing: number; unit: string; inInventory: boolean }>> {
   const itemList = inventoryItems.map((i) => `- ${i.name} (id: ${i.id}, unit: ${i.unit})`).join("\n");
 
-  const systemPrompt = `You are a restaurant recipe consultant. Given a menu item name and available inventory items, suggest the recipe ingredients with quantities per single serving.
+  const systemPrompt = `You are a restaurant recipe consultant for a coney island diner. Given a menu item, suggest ALL ingredients a real recipe needs — with quantities per single serving.
 
-Available inventory items:
-${itemList}
+Current inventory (may be incomplete):
+${itemList || "(empty)"}
 
-CRITICAL: The "unit" you return for each ingredient MUST be the SAME unit listed next to that inventory item above. Inventory is tracked in those base units, so the recipe must use them too. Convert your mental recipe to those units.
-
-For example: if "Ketchup" is stored in "oz", return qtyPerServing in oz (e.g. 0.5 oz), NOT in "tbsp" or "cup".
+RULES:
+1. Suggest EVERY ingredient the recipe truly needs, even if it's NOT in inventory.
+2. If an ingredient matches an existing inventory item, set inventoryItemId to that item's id and use its exact unit.
+3. If an ingredient is NOT in inventory, set inventoryItemId to null and use a sensible base unit (oz, lb, each, floz, gal).
+4. Be realistic — a cheese omelette needs eggs, cheese, butter, salt, pepper. Not flour, bread, or ketchup.
+5. Use recipe-friendly units: oz, lb, each, floz, gal. Never container units (jug, bag, case, box).
 
 Return ONLY valid JSON array:
-[{ "inventoryItemId": "uuid", "inventoryItemName": "name", "qtyPerServing": 0.5, "unit": "oz" }]
-Only use items from the list above. Use EXACT ids from the list. Be realistic for a coney island diner. No markdown, no explanation.`;
+[{ "ingredientName": "Eggs", "inventoryItemId": null, "inventoryItemName": null, "qtyPerServing": 3, "unit": "each" }]
+No markdown, no explanation.`;
 
   const reply = await cortexChat([
     { role: "system", content: systemPrompt },

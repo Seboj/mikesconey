@@ -131,8 +131,66 @@ try {
 
     function renderRow(data?: any) {
       const tr = document.createElement("tr");
-      tr.className = "border-b border-stone-100 recipe-row";
-      tr.innerHTML = `
+      const isMissing = data?.inInventory === false && !data?.inventoryItemId;
+      tr.className = `border-b border-stone-100 recipe-row ${isMissing ? "bg-amber-50/50" : ""}`;
+
+      if (isMissing) {
+        // Missing ingredient — show name + "Add to Inventory" button
+        tr.innerHTML = `
+          <td class="px-3 py-2">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-amber-800">${data.ingredientName || "Unknown"}</span>
+              <span class="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded-full">Not in inventory</span>
+              <button class="add-to-inv px-2 py-0.5 text-[10px] font-medium bg-brand-primary text-white rounded hover:bg-brand-primary-dark transition-colors">+ Add</button>
+            </div>
+            <select class="r-item hidden" data-missing-name="${data.ingredientName || ""}" data-missing-unit="${data.unit || "each"}"><option value=""></option></select>
+          </td>
+          <td class="px-3 py-2 text-right">
+            <input type="number" step="0.001" value="${data?.qtyPerServing || ''}" class="r-qty w-24 border border-stone-200 rounded px-2 py-1 text-sm text-right" />
+          </td>
+          <td class="px-3 py-2">
+            <input type="text" value="${data?.unit || ''}" class="r-unit w-20 border border-stone-200 rounded px-2 py-1 text-sm" />
+          </td>
+          <td class="px-3 py-1">
+            <button class="remove-row text-red-500 hover:text-red-700 text-lg">&times;</button>
+          </td>
+        `;
+        // "Add to Inventory" click handler
+        tr.querySelector(".add-to-inv")!.addEventListener("click", async (e) => {
+          const btn = e.target as HTMLButtonElement;
+          btn.textContent = "Adding...";
+          btn.disabled = true;
+          try {
+            const res = await fetch("/api/admin/inventory/items", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: data.ingredientName, unit: data.unit || "each" }),
+            });
+            if (!res.ok) throw new Error("Failed");
+            const newItem = await res.json();
+            // Add to local list and re-render this row as matched
+            inventoryItems.push(newItem);
+            const newData = { inventoryItemId: newItem.id, qtyPerServing: data.qtyPerServing, unit: newItem.unit, inInventory: true };
+            const newTr = document.createElement("tr");
+            newTr.className = "border-b border-stone-100 recipe-row";
+            newTr.innerHTML = buildMatchedRowHtml(newData);
+            newTr.querySelector(".remove-row")!.addEventListener("click", () => newTr.remove());
+            tr.replaceWith(newTr);
+          } catch {
+            btn.textContent = "Failed";
+            btn.classList.add("bg-red-500");
+          }
+        });
+      } else {
+        tr.innerHTML = buildMatchedRowHtml(data);
+      }
+
+      tr.querySelector(".remove-row")!.addEventListener("click", () => tr.remove());
+      tbody.appendChild(tr);
+    }
+
+    function buildMatchedRowHtml(data?: any) {
+      return `
         <td class="px-3 py-2">
           <select class="r-item w-full border border-stone-200 rounded px-2 py-1 text-sm">
             <option value="">— Select —</option>
@@ -149,8 +207,6 @@ try {
           <button class="remove-row text-red-500 hover:text-red-700 text-lg">&times;</button>
         </td>
       `;
-      tr.querySelector(".remove-row")!.addEventListener("click", () => tr.remove());
-      tbody.appendChild(tr);
     }
 
     recipe.forEach((r: any) => renderRow(r));
@@ -196,27 +252,12 @@ try {
 
         tbody.innerHTML = "";
         suggestions.forEach((s: any) => {
-          // Verify the item ID exists; if LLM hallucinated, try matching by name
-          let matchedId = s.inventoryItemId;
-          if (!inventoryItems.find((ii: any) => ii.id === matchedId)) {
-            const byName = inventoryItems.find((ii: any) =>
-              ii.name.toLowerCase() === (s.inventoryItemName || "").toLowerCase()
-            );
-            if (!byName) {
-              // Try fuzzy: check if inventory item name contains suggestion name or vice versa
-              const fuzzy = inventoryItems.find((ii: any) =>
-                ii.name.toLowerCase().includes((s.inventoryItemName || "").toLowerCase()) ||
-                (s.inventoryItemName || "").toLowerCase().includes(ii.name.toLowerCase())
-              );
-              matchedId = fuzzy?.id || "";
-            } else {
-              matchedId = byName.id;
-            }
-          }
           renderRow({
-            inventoryItemId: matchedId,
+            inventoryItemId: s.inventoryItemId || null,
+            ingredientName: s.ingredientName,
             qtyPerServing: s.qtyPerServing,
-            unit: s.unit || inventoryItems.find((ii: any) => ii.id === matchedId)?.unit || "",
+            unit: s.unit,
+            inInventory: s.inInventory,
           });
         });
       } catch {
