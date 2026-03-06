@@ -9,8 +9,8 @@ const PASSTHROUGH_PREFIXES = ["/admin", "/api", "/_astro", "/_image"];
 export const onRequest = defineMiddleware(async ({ url, request, redirect }, next) => {
   const path = url.pathname;
 
-  // Proxy /api/* requests to the API server (replaces Vite dev proxy in production)
-  if (path.startsWith("/api/")) {
+  // Proxy /api/* and /uploads/* requests to the API server
+  if (path.startsWith("/api/") || path.startsWith("/uploads/")) {
     const target = `${API_URL}${path}${url.search}`;
     const headers = new Headers(request.headers);
     headers.set("host", new URL(API_URL).host);

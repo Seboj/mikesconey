@@ -5,6 +5,7 @@ import helmet from "helmet";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
+import path from "path";
 import { healthRouter } from "./routes/health.js";
 import { customersRouter } from "./routes/customers.js";
 import { authRouter } from "./routes/auth.js";
@@ -61,6 +62,9 @@ app.use(
     },
   })
 );
+
+// Serve locally-stored uploads (S3 fallback for dev)
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 // Routes
 app.use("/api", healthRouter);

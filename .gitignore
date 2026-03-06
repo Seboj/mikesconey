@@ -12,6 +12,9 @@ dist/
 # Docker
 postgres-data/
 
+# Uploaded files (S3 fallback for dev)
+server/uploads/
+
 # IDE
 .vscode/
 .idea/

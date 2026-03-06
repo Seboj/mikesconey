@@ -41,6 +41,7 @@ services:
         condition: service_healthy
     volumes:
       - ./server/src:/app/src
+      - ./server/uploads:/app/uploads
     develop:
       watch:
         - action: sync
