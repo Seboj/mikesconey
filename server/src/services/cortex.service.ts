@@ -273,7 +273,7 @@ Match user input to the closest menu item. If no match, omit menuItemId. No mark
 export async function suggestRecipe(
   menuItemName: string,
   inventoryItems: Array<{ id: string; name: string; unit: string }>
-): Promise<Array<{ ingredientName: string; inventoryItemId: string | null; inventoryItemName: string | null; qtyPerServing: number; unit: string; inInventory: boolean }>> {
+): Promise<Array<{ ingredientName: string; inventoryItemId: string | null; inventoryItemName: string | null; qtyPerServing: number; unit: string; category: string; inInventory: boolean }>> {
   const itemList = inventoryItems.map((i) => `- ${i.name} (id: ${i.id}, unit: ${i.unit})`).join("\n");
 
   const systemPrompt = `You are a restaurant recipe consultant for a coney island diner. Given a menu item, suggest ALL ingredients a real recipe needs — with quantities per single serving.
@@ -287,9 +287,10 @@ RULES:
 3. If an ingredient is NOT in inventory, set inventoryItemId to null and use a sensible base unit (oz, lb, each, floz, gal).
 4. Be realistic — a cheese omelette needs eggs, cheese, butter, salt, pepper. Not flour, bread, or ketchup.
 5. Use recipe-friendly units: oz, lb, each, floz, gal. Never container units (jug, bag, case, box).
+6. For each ingredient, include a category from: Protein, Produce, Dairy, Dry Goods, Condiments, Paper/Supplies, Beverage, Other.
 
 Return ONLY valid JSON array:
-[{ "ingredientName": "Eggs", "inventoryItemId": null, "inventoryItemName": null, "qtyPerServing": 3, "unit": "each" }]
+[{ "ingredientName": "Eggs", "inventoryItemId": null, "inventoryItemName": null, "qtyPerServing": 3, "unit": "each", "category": "Protein" }]
 No markdown, no explanation.`;
 
   const reply = await cortexChat([

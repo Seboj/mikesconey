@@ -7,12 +7,42 @@ import { uploadFile } from "../services/s3.service.js";
 
 export const adminInventoryRouter = Router();
 
+/** Parse a single CSV line, handling quoted fields with commas inside */
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
+      else if (ch === '"') { inQuotes = false; }
+      else { current += ch; }
+    } else {
+      if (ch === '"') { inQuotes = true; }
+      else if (ch === ",") { result.push(current); current = ""; }
+      else { current += ch; }
+    }
+  }
+  result.push(current);
+  return result;
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith("image/")) cb(null, true);
     else cb(new Error("Only image files are allowed"));
+  },
+});
+
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) cb(null, true);
+    else cb(new Error("Only CSV files are allowed"));
   },
 });
 
@@ -288,23 +318,24 @@ adminInventoryRouter.post("/inventory/recipes/:menuItemId/suggest", async (req, 
 
     // Server-side matching: verify LLM-provided IDs and try fuzzy match for missing ones
     const suggestion = raw.map((s) => {
+      const category = s.category || "Other";
       const exactMatch = s.inventoryItemId ? items.find((i) => i.id === s.inventoryItemId) : null;
       if (exactMatch) {
-        return { ...s, inventoryItemName: exactMatch.name, unit: exactMatch.unit, inInventory: true };
+        return { ...s, inventoryItemName: exactMatch.name, unit: exactMatch.unit, category, inInventory: true };
       }
       // Fuzzy match by name
       const byName = items.find((i) => i.name.toLowerCase() === (s.ingredientName || "").toLowerCase());
       if (byName) {
-        return { ...s, inventoryItemId: byName.id, inventoryItemName: byName.name, unit: byName.unit, inInventory: true };
+        return { ...s, inventoryItemId: byName.id, inventoryItemName: byName.name, unit: byName.unit, category, inInventory: true };
       }
       const fuzzy = items.find((i) =>
         i.name.toLowerCase().includes((s.ingredientName || "").toLowerCase()) ||
         (s.ingredientName || "").toLowerCase().includes(i.name.toLowerCase())
       );
       if (fuzzy) {
-        return { ...s, inventoryItemId: fuzzy.id, inventoryItemName: fuzzy.name, unit: fuzzy.unit, inInventory: true };
+        return { ...s, inventoryItemId: fuzzy.id, inventoryItemName: fuzzy.name, unit: fuzzy.unit, category, inInventory: true };
       }
-      return { ...s, inventoryItemId: null, inventoryItemName: null, inInventory: false };
+      return { ...s, inventoryItemId: null, inventoryItemName: null, category, inInventory: false };
     });
 
     res.json(suggestion);
@@ -351,6 +382,107 @@ adminInventoryRouter.delete("/inventory/sales/:id", async (req, res) => {
   const deleted = await inv.deleteSalesEntry(req.params.id);
   if (!deleted) { res.status(404).json({ error: "Sales entry not found" }); return; }
   res.json({ success: true });
+});
+
+// CSV Upload: parse and preview
+adminInventoryRouter.post("/inventory/sales/upload-csv", csvUpload.single("file"), async (req, res) => {
+  if (!req.file) { res.status(400).json({ error: "No CSV file provided" }); return; }
+
+  try {
+    const text = req.file.buffer.toString("utf-8");
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) { res.status(400).json({ error: "CSV must have a header row and at least one data row" }); return; }
+
+    // Parse header
+    const header = parseCSVLine(lines[0]).map((h) => h.toLowerCase().trim());
+    const dateIdx = header.indexOf("date");
+    const itemIdx = header.indexOf("item");
+    const qtyIdx = header.indexOf("qty");
+    if (dateIdx === -1 || itemIdx === -1 || qtyIdx === -1) {
+      res.status(400).json({ error: "CSV must have date, item, and qty columns" }); return;
+    }
+
+    // Parse data rows
+    const rows: Array<{ date: string; item: string; qty: number; modifications?: string; unitPrice?: number }> = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCSVLine(lines[i]);
+      if (cols.length < 3) continue;
+      const qty = parseInt(cols[qtyIdx], 10);
+      if (isNaN(qty) || qty <= 0) continue;
+      rows.push({
+        date: cols[dateIdx]?.trim(),
+        item: cols[itemIdx]?.trim(),
+        qty,
+        modifications: header.indexOf("modifications") >= 0 ? cols[header.indexOf("modifications")]?.trim() : undefined,
+        unitPrice: header.indexOf("unit_price") >= 0 ? parseFloat(cols[header.indexOf("unit_price")]) || undefined : undefined,
+      });
+    }
+
+    // Match against menu items
+    const menuItems = await inv.listMenuItems();
+    const preview = rows.map((r) => {
+      // Exact match
+      let match = menuItems.find((m) => m.name.toLowerCase() === r.item.toLowerCase());
+      // Lowercase contains
+      if (!match) match = menuItems.find((m) => m.name.toLowerCase().includes(r.item.toLowerCase()) || r.item.toLowerCase().includes(m.name.toLowerCase()));
+      return {
+        ...r,
+        menuItemId: match?.id || null,
+        menuItemName: match?.name || null,
+        matchStatus: match ? "matched" as const : "unmatched" as const,
+      };
+    });
+
+    // Aggregate by date + menuItemId for summary
+    const summary = {
+      totalRows: rows.length,
+      matched: preview.filter((p) => p.matchStatus === "matched").length,
+      unmatched: preview.filter((p) => p.matchStatus === "unmatched").length,
+      dates: [...new Set(rows.map((r) => r.date))].sort(),
+    };
+
+    res.json({ preview, summary, menuItems: menuItems.map((m) => ({ id: m.id, name: m.name })) });
+  } catch (err: any) {
+    console.error("[inventory] CSV upload error:", err);
+    res.status(500).json({ error: "Failed to parse CSV", details: err.message });
+  }
+});
+
+// CSV Import: create sales entries from confirmed preview
+adminInventoryRouter.post("/inventory/sales/import-csv", async (req, res) => {
+  const schema = z.object({
+    lines: z.array(z.object({
+      date: z.string(),
+      menuItemId: z.string().uuid(),
+      qty: z.number().int().positive(),
+    })),
+  });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() }); return; }
+
+  try {
+    // Group by date
+    const byDate = new Map<string, Array<{ menuItemId: string; qtySold: number }>>();
+    for (const line of parsed.data.lines) {
+      const existing = byDate.get(line.date) || [];
+      // Aggregate same menu item on same date
+      const found = existing.find((e) => e.menuItemId === line.menuItemId);
+      if (found) { found.qtySold += line.qty; }
+      else { existing.push({ menuItemId: line.menuItemId, qtySold: line.qty }); }
+      byDate.set(line.date, existing);
+    }
+
+    const entries: any[] = [];
+    for (const [date, lines] of byDate) {
+      const entry = await inv.createSalesEntry({ saleDate: date, notes: "CSV import", lines });
+      entries.push(entry);
+    }
+
+    res.json({ success: true, entriesCreated: entries.length, entries });
+  } catch (err: any) {
+    console.error("[inventory] CSV import error:", err);
+    res.status(500).json({ error: "Failed to import sales", details: err.message });
+  }
 });
 
 // ── Reports ──

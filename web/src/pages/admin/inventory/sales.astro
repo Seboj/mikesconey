@@ -27,6 +27,52 @@ try {
 
   <InventoryNav active="sales" />
 
+  <!-- CSV Upload -->
+  <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 mb-6">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="font-heading font-semibold text-brand-text-heading">Upload CSV</h2>
+      <a href="/test-data/sample-pos-export.csv" download class="text-xs text-brand-primary hover:underline">Download sample CSV</a>
+    </div>
+    <p class="text-xs text-brand-text-muted mb-3">Import sales from a POS export. CSV must have <code class="bg-stone-100 px-1 rounded">date</code>, <code class="bg-stone-100 px-1 rounded">item</code>, and <code class="bg-stone-100 px-1 rounded">qty</code> columns.</p>
+
+    <div id="csv-dropzone" class="border-2 border-dashed border-stone-300 rounded-lg p-6 text-center cursor-pointer hover:border-brand-primary hover:bg-brand-primary/5 transition-colors">
+      <svg class="w-8 h-8 mx-auto text-stone-400 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+      <p class="text-sm text-brand-text-muted">Drop a CSV file here or <span class="text-brand-primary font-medium">click to browse</span></p>
+      <input type="file" id="csv-input" accept=".csv" class="hidden" />
+    </div>
+
+    <div id="csv-status" class="mt-3 hidden">
+      <div class="flex items-center gap-2">
+        <div class="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-sm text-brand-text-muted">Processing CSV...</span>
+      </div>
+    </div>
+
+    <!-- CSV Preview -->
+    <div id="csv-preview" class="mt-4 hidden">
+      <div id="csv-summary" class="flex gap-4 mb-3 text-sm"></div>
+      <div class="overflow-x-auto border border-stone-200 rounded-lg mb-3 max-h-[400px] overflow-y-auto">
+        <table class="w-full text-sm">
+          <thead class="sticky top-0">
+            <tr class="bg-stone-50 border-b border-stone-200">
+              <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Date</th>
+              <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">CSV Item</th>
+              <th class="text-right px-3 py-2 text-xs font-medium text-brand-text-muted">Qty</th>
+              <th class="text-left px-3 py-2 text-xs font-medium text-brand-text-muted">Matched To</th>
+              <th class="text-center px-3 py-2 text-xs font-medium text-brand-text-muted">Status</th>
+            </tr>
+          </thead>
+          <tbody id="csv-preview-body"></tbody>
+        </table>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="csv-import-btn" class="px-4 py-2 bg-brand-primary text-white rounded-lg text-sm font-medium hover:bg-brand-primary-dark transition-colors">Import Sales</button>
+        <button id="csv-cancel-btn" class="px-4 py-2 border border-stone-300 rounded-lg text-sm font-medium text-brand-text-body hover:bg-stone-50 transition-colors">Cancel</button>
+        <p id="csv-msg" class="text-sm hidden"></p>
+      </div>
+    </div>
+  </div>
+
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <!-- NLP Entry -->
     <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
@@ -209,5 +255,144 @@ try {
       const res = await fetch(`/api/admin/inventory/sales/${id}`, { method: "DELETE" });
       if (res.ok) window.location.reload();
     });
+  });
+
+  // ── CSV Upload ──
+  const csvDropzone = document.getElementById("csv-dropzone")!;
+  const csvInput = document.getElementById("csv-input") as HTMLInputElement;
+  const csvStatus = document.getElementById("csv-status")!;
+  const csvPreview = document.getElementById("csv-preview")!;
+  const csvPreviewBody = document.getElementById("csv-preview-body")!;
+  const csvSummary = document.getElementById("csv-summary")!;
+
+  let csvData: any = null; // stored preview response
+
+  csvDropzone.addEventListener("click", () => csvInput.click());
+  csvDropzone.addEventListener("dragover", (e) => { e.preventDefault(); csvDropzone.classList.add("border-brand-primary", "bg-brand-primary/5"); });
+  csvDropzone.addEventListener("dragleave", () => { csvDropzone.classList.remove("border-brand-primary", "bg-brand-primary/5"); });
+  csvDropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    csvDropzone.classList.remove("border-brand-primary", "bg-brand-primary/5");
+    const file = (e as DragEvent).dataTransfer?.files[0];
+    if (file) uploadCSV(file);
+  });
+  csvInput.addEventListener("change", () => {
+    if (csvInput.files?.[0]) uploadCSV(csvInput.files[0]);
+  });
+
+  async function uploadCSV(file: File) {
+    csvStatus.classList.remove("hidden");
+    csvPreview.classList.add("hidden");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/admin/inventory/sales/upload-csv", { method: "POST", body: formData });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Upload failed"); }
+      csvData = await res.json();
+      renderCSVPreview();
+    } catch (err: any) {
+      alert(err.message || "Failed to upload CSV");
+    } finally {
+      csvStatus.classList.add("hidden");
+      csvInput.value = "";
+    }
+  }
+
+  function renderCSVPreview() {
+    if (!csvData) return;
+    csvPreview.classList.remove("hidden");
+    csvDropzone.classList.add("hidden");
+
+    const s = csvData.summary;
+    csvSummary.innerHTML = `
+      <span class="px-2 py-1 bg-stone-100 rounded text-xs font-medium">${s.totalRows} rows</span>
+      <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">${s.matched} matched</span>
+      ${s.unmatched > 0 ? `<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded text-xs font-medium">${s.unmatched} unmatched</span>` : ""}
+      <span class="px-2 py-1 bg-stone-100 rounded text-xs font-medium">${s.dates.length} date${s.dates.length !== 1 ? "s" : ""}</span>
+    `;
+
+    csvPreviewBody.innerHTML = "";
+    const allMenuItems = csvData.menuItems || [];
+
+    csvData.preview.forEach((row: any, idx: number) => {
+      const tr = document.createElement("tr");
+      tr.className = row.matchStatus === "unmatched" ? "bg-amber-50/50 border-b border-stone-100" : "border-b border-stone-100";
+      tr.dataset.idx = String(idx);
+
+      if (row.matchStatus === "matched") {
+        tr.innerHTML = `
+          <td class="px-3 py-2 text-brand-text-body">${row.date}</td>
+          <td class="px-3 py-2 text-brand-text-body">${row.item}</td>
+          <td class="px-3 py-2 text-right text-brand-text-body">${row.qty}</td>
+          <td class="px-3 py-2 text-brand-text-body">${row.menuItemName}</td>
+          <td class="px-3 py-2 text-center"><span class="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded-full">Matched</span></td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td class="px-3 py-2 text-amber-800">${row.date}</td>
+          <td class="px-3 py-2 text-amber-800 font-medium">${row.item}</td>
+          <td class="px-3 py-2 text-right text-amber-800">${row.qty}</td>
+          <td class="px-3 py-2">
+            <select class="csv-remap w-full border border-amber-300 rounded px-2 py-1 text-sm bg-white" data-idx="${idx}">
+              <option value="">— Skip —</option>
+              ${allMenuItems.map((mi: any) => `<option value="${mi.id}">${mi.name}</option>`).join("")}
+            </select>
+          </td>
+          <td class="px-3 py-2 text-center"><span class="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded-full">Unmatched</span></td>
+        `;
+      }
+      csvPreviewBody.appendChild(tr);
+    });
+  }
+
+  document.getElementById("csv-cancel-btn")?.addEventListener("click", () => {
+    csvPreview.classList.add("hidden");
+    csvDropzone.classList.remove("hidden");
+    csvData = null;
+  });
+
+  document.getElementById("csv-import-btn")?.addEventListener("click", async () => {
+    if (!csvData) return;
+    const msg = document.getElementById("csv-msg")!;
+    const btn = document.getElementById("csv-import-btn") as HTMLButtonElement;
+    btn.disabled = true;
+    btn.textContent = "Importing...";
+
+    // Build import lines: matched + manually remapped
+    const lines: Array<{ date: string; menuItemId: string; qty: number }> = [];
+    csvData.preview.forEach((row: any, idx: number) => {
+      let menuItemId = row.menuItemId;
+      if (!menuItemId) {
+        const select = csvPreviewBody.querySelector(`select[data-idx="${idx}"]`) as HTMLSelectElement | null;
+        menuItemId = select?.value || null;
+      }
+      if (menuItemId) {
+        lines.push({ date: row.date, menuItemId, qty: row.qty });
+      }
+    });
+
+    if (lines.length === 0) { alert("No matched items to import"); btn.disabled = false; btn.textContent = "Import Sales"; return; }
+
+    try {
+      const res = await fetch("/api/admin/inventory/sales/import-csv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lines }),
+      });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || "Import failed"); }
+      const data = await res.json();
+      msg.textContent = `Imported ${lines.length} items across ${data.entriesCreated} date(s)!`;
+      msg.className = "text-sm text-green-600";
+      msg.classList.remove("hidden");
+      setTimeout(() => { window.location.reload(); }, 1200);
+    } catch (err: any) {
+      msg.textContent = err.message || "Import failed";
+      msg.className = "text-sm text-red-600";
+      msg.classList.remove("hidden");
+      btn.disabled = false;
+      btn.textContent = "Import Sales";
+    }
   });
 </script>

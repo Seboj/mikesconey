@@ -164,7 +164,7 @@ try {
             const res = await fetch("/api/admin/inventory/items", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name: data.ingredientName, unit: data.unit || "each" }),
+              body: JSON.stringify({ name: data.ingredientName, unit: data.unit || "each", category: data.category || undefined }),
             });
             if (!res.ok) throw new Error("Failed");
             const newItem = await res.json();
@@ -257,6 +257,7 @@ try {
             ingredientName: s.ingredientName,
             qtyPerServing: s.qtyPerServing,
             unit: s.unit,
+            category: s.category,
             inInventory: s.inInventory,
           });
         });
