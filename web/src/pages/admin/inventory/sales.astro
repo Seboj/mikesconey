@@ -43,8 +43,8 @@ try {
 
     <div id="csv-status" class="mt-3 hidden">
       <div class="flex items-center gap-2">
-        <div class="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-sm text-brand-text-muted">Processing CSV...</span>
+        <div class="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-sm text-brand-text-muted">AI is matching items...</span>
       </div>
     </div>
 
@@ -324,7 +324,7 @@ try {
       if (row.matchStatus === "matched") {
         tr.innerHTML = `
           <td class="px-3 py-2 text-brand-text-body">${row.date}</td>
-          <td class="px-3 py-2 text-brand-text-body">${row.item}</td>
+          <td class="px-3 py-2 text-brand-text-body">${row.item}${row.modifications ? `<span class="text-[10px] text-brand-text-muted ml-1">(${row.modifications})</span>` : ""}</td>
           <td class="px-3 py-2 text-right text-brand-text-body">${row.qty}</td>
           <td class="px-3 py-2 text-brand-text-body">${row.menuItemName}</td>
           <td class="px-3 py-2 text-center"><span class="px-1.5 py-0.5 text-[10px] font-medium bg-green-100 text-green-700 rounded-full">Matched</span></td>
@@ -332,16 +332,57 @@ try {
       } else {
         tr.innerHTML = `
           <td class="px-3 py-2 text-amber-800">${row.date}</td>
-          <td class="px-3 py-2 text-amber-800 font-medium">${row.item}</td>
+          <td class="px-3 py-2 text-amber-800 font-medium">${row.item}${row.modifications ? `<span class="text-[10px] text-amber-600 ml-1">(${row.modifications})</span>` : ""}</td>
           <td class="px-3 py-2 text-right text-amber-800">${row.qty}</td>
           <td class="px-3 py-2">
-            <select class="csv-remap w-full border border-amber-300 rounded px-2 py-1 text-sm bg-white" data-idx="${idx}">
-              <option value="">— Skip —</option>
-              ${allMenuItems.map((mi: any) => `<option value="${mi.id}">${mi.name}</option>`).join("")}
-            </select>
+            <div class="flex items-center gap-1">
+              <select class="csv-remap flex-1 border border-amber-300 rounded px-2 py-1 text-sm bg-white" data-idx="${idx}">
+                <option value="">— Skip —</option>
+                ${allMenuItems.map((mi: any) => `<option value="${mi.id}">${mi.name}</option>`).join("")}
+              </select>
+              <button class="csv-add-menu shrink-0 px-2 py-1 text-[10px] font-medium bg-brand-primary text-white rounded hover:bg-brand-primary-dark transition-colors" data-idx="${idx}" data-name="${row.item}">+ Add</button>
+            </div>
           </td>
           <td class="px-3 py-2 text-center"><span class="px-1.5 py-0.5 text-[10px] font-medium bg-amber-100 text-amber-700 rounded-full">Unmatched</span></td>
         `;
+        // "Add to Menu" handler
+        tr.querySelector(".csv-add-menu")!.addEventListener("click", async (e) => {
+          const btn = e.target as HTMLButtonElement;
+          const itemName = btn.dataset.name!;
+          const rowIdx = parseInt(btn.dataset.idx!);
+          btn.textContent = "Adding...";
+          btn.disabled = true;
+          try {
+            const res = await fetch("/api/admin/inventory/menu-items", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name: itemName }),
+            });
+            if (!res.ok) throw new Error("Failed");
+            const newItem = await res.json();
+            // Update local data so import picks it up
+            allMenuItems.push({ id: newItem.id, name: newItem.name });
+            csvData.preview[rowIdx].menuItemId = newItem.id;
+            csvData.preview[rowIdx].menuItemName = newItem.name;
+            csvData.preview[rowIdx].matchStatus = "matched";
+            // Also match all other rows with the same item name
+            csvData.preview.forEach((p: any, i: number) => {
+              if (i !== rowIdx && p.item === itemName && p.matchStatus === "unmatched") {
+                p.menuItemId = newItem.id;
+                p.menuItemName = newItem.name;
+                p.matchStatus = "matched";
+              }
+            });
+            // Update summary counts
+            csvData.summary.matched = csvData.preview.filter((p: any) => p.matchStatus === "matched").length;
+            csvData.summary.unmatched = csvData.preview.filter((p: any) => p.matchStatus === "unmatched").length;
+            // Re-render the whole preview
+            renderCSVPreview();
+          } catch {
+            btn.textContent = "Failed";
+            btn.classList.replace("bg-brand-primary", "bg-red-500");
+          }
+        });
       }
       csvPreviewBody.appendChild(tr);
     });

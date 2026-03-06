@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
 import * as inv from "../services/inventory.service.js";
-import { extractDocument, normalizeLineItems, matchVendor, parseSalesText, suggestRecipe } from "../services/cortex.service.js";
+import { extractDocument, normalizeLineItems, matchVendor, parseSalesText, matchCSVItems, suggestRecipe } from "../services/cortex.service.js";
 import { uploadFile } from "../services/s3.service.js";
 
 export const adminInventoryRouter = Router();
@@ -418,22 +418,32 @@ adminInventoryRouter.post("/inventory/sales/upload-csv", csvUpload.single("file"
       });
     }
 
-    // Match against menu items
+    // AI-match unique item names against menu items
     const menuItems = await inv.listMenuItems();
+    const uniqueItems = [...new Set(rows.map((r) => r.item))];
+    const aiMatches = await matchCSVItems(
+      uniqueItems,
+      menuItems.map((m) => ({ id: m.id, name: m.name }))
+    );
+
+    // Build lookup: csvItem → match result
+    const matchMap = new Map<string, { menuItemId: string | null; menuItemName: string | null; confidence: number }>();
+    for (const m of aiMatches) {
+      matchMap.set(m.csvItem, { menuItemId: m.menuItemId, menuItemName: m.menuItemName, confidence: m.confidence });
+    }
+
     const preview = rows.map((r) => {
-      // Exact match
-      let match = menuItems.find((m) => m.name.toLowerCase() === r.item.toLowerCase());
-      // Lowercase contains
-      if (!match) match = menuItems.find((m) => m.name.toLowerCase().includes(r.item.toLowerCase()) || r.item.toLowerCase().includes(m.name.toLowerCase()));
+      const match = matchMap.get(r.item);
+      const hasMatch = match?.menuItemId != null && (match.confidence ?? 0) >= 0.7;
       return {
         ...r,
-        menuItemId: match?.id || null,
-        menuItemName: match?.name || null,
-        matchStatus: match ? "matched" as const : "unmatched" as const,
+        menuItemId: hasMatch ? match!.menuItemId : null,
+        menuItemName: hasMatch ? match!.menuItemName : null,
+        confidence: match?.confidence ?? 0,
+        matchStatus: hasMatch ? "matched" as const : "unmatched" as const,
       };
     });
 
-    // Aggregate by date + menuItemId for summary
     const summary = {
       totalRows: rows.length,
       matched: preview.filter((p) => p.matchStatus === "matched").length,

@@ -270,6 +270,46 @@ Match user input to the closest menu item. If no match, omit menuItemId. No mark
   return JSON.parse(jsonStr);
 }
 
+export async function matchCSVItems(
+  csvItemNames: string[],
+  menuItems: Array<{ id: string; name: string }>
+): Promise<Array<{ csvItem: string; menuItemId: string | null; menuItemName: string | null; confidence: number }>> {
+  const menuList = menuItems.map((m) => `- "${m.name}" (id: ${m.id})`).join("\n");
+
+  const systemPrompt = `You match POS/CSV item names to a restaurant's menu items. Items may use abbreviations, short names, or slight variations.
+
+Menu items:
+${menuList}
+
+For each CSV item name provided, return the best matching menu item. Consider:
+- "Reg Coney" → "Regular Coney"
+- "Chz Burger" → "Cheeseburger"
+- "Fries" → "French Fries"
+- "Coke" or "Pepsi" or "Dr Pepper" → "Soft Drinks"
+- "OJ" → "Orange Juice"
+- "Eggs" → "Two Eggs Any Style"
+- "Pancakes" → "Short Stack Pancakes"
+- Item names are case-insensitive
+
+Return ONLY a valid JSON array with one entry per input item:
+[{ "csvItem": "original name from input", "menuItemId": "uuid or null", "menuItemName": "matched menu name or null", "confidence": 0.95 }]
+
+Rules:
+- If confident match (>0.7), set menuItemId and menuItemName
+- If no reasonable match, set menuItemId and menuItemName to null
+- confidence: 1.0 = exact match, 0.8+ = very likely, 0.5-0.7 = possible, <0.5 = no match
+- Every input item must appear exactly once in output
+No markdown, no explanation — only JSON.`;
+
+  const reply = await cortexChat([
+    { role: "system", content: systemPrompt },
+    { role: "user", content: JSON.stringify(csvItemNames) },
+  ]);
+
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
+}
+
 export async function suggestRecipe(
   menuItemName: string,
   inventoryItems: Array<{ id: string; name: string; unit: string }>
