@@ -54,28 +54,6 @@ export async function cortexChat(
   return reply;
 }
 
-/** Strip thinking tags, markdown fences, and extract the first valid JSON structure */
-function extractJSON(raw: string): string {
-  // Remove <think>...</think> blocks (Qwen3 reasoning)
-  let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-  // Remove markdown code fences
-  cleaned = cleaned.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-  // Try to find JSON object or array boundaries
-  const objStart = cleaned.indexOf("{");
-  const arrStart = cleaned.indexOf("[");
-  if (objStart === -1 && arrStart === -1) return cleaned;
-  const start = objStart === -1 ? arrStart : arrStart === -1 ? objStart : Math.min(objStart, arrStart);
-  const isArray = cleaned[start] === "[";
-  // Find the matching closing bracket
-  let depth = 0;
-  for (let i = start; i < cleaned.length; i++) {
-    if (cleaned[i] === (isArray ? "[" : "{")) depth++;
-    else if (cleaned[i] === (isArray ? "]" : "}")) depth--;
-    if (depth === 0) return cleaned.slice(start, i + 1);
-  }
-  return cleaned.slice(start);
-}
-
 /**
  * Stage 1: Extract raw document data using VLM (CortexVLM pool).
  * Returns vendor info, invoice metadata, line items AS PRINTED, and totals.
@@ -150,7 +128,8 @@ Rules:
     { pool: "CortexVLM", model: CORTEX_VLM_MODEL, maxTokens: 4000 }
   );
 
-  return JSON.parse(extractJSON(reply));
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
 }
 
 /**
@@ -228,7 +207,8 @@ Return ONLY valid JSON array. No markdown, no explanation.`;
     { maxTokens: 4000 }
   );
 
-  return JSON.parse(extractJSON(reply));
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
 }
 
 /**
@@ -263,7 +243,8 @@ No markdown, no explanation — only JSON.`;
     { maxTokens: 1000 }
   );
 
-  return JSON.parse(extractJSON(reply));
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
 }
 
 export async function parseSalesText(
@@ -285,7 +266,8 @@ Match user input to the closest menu item. If no match, omit menuItemId. No mark
     { role: "user", content: text },
   ]);
 
-  return JSON.parse(extractJSON(reply));
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
 }
 
 export async function matchCSVItems(
@@ -324,7 +306,8 @@ No markdown, no explanation — only JSON.`;
     { role: "user", content: JSON.stringify(csvItemNames) },
   ]);
 
-  return JSON.parse(extractJSON(reply));
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
 }
 
 export async function suggestRecipe(
@@ -355,5 +338,6 @@ No markdown, no explanation.`;
     { role: "user", content: `Suggest a recipe for: ${menuItemName}` },
   ]);
 
-  return JSON.parse(extractJSON(reply));
+  const jsonStr = reply.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+  return JSON.parse(jsonStr);
 }
