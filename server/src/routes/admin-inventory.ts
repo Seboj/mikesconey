@@ -2,7 +2,8 @@ import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
 import * as inv from "../services/inventory.service.js";
-import { extractDocument, normalizeLineItems, matchVendor, parseSalesText, matchCSVItems, suggestRecipe } from "../services/cortex.service.js";
+import { extractDocument, verifyExtraction, normalizeLineItems, matchVendor, parseSalesText, matchCSVItems, suggestRecipe } from "../services/cortex.service.js";
+import sharp from "sharp";
 import { uploadFile } from "../services/s3.service.js";
 
 export const adminInventoryRouter = Router();
@@ -117,15 +118,34 @@ adminInventoryRouter.delete("/inventory/items/:id", async (req, res) => {
 
 // ── Purchase Orders ──
 
-// Stage 1: Extract document with VLM
+// Stage 1: Extract document with VLM + LLM verification
 adminInventoryRouter.post("/inventory/po/scan", upload.single("invoice"), async (req, res) => {
   if (!req.file) { res.status(400).json({ error: "No image file provided" }); return; }
 
   try {
-    const base64 = req.file.buffer.toString("base64");
-    const result = await extractDocument(base64, req.file.mimetype);
+    // Resize large images so the VLM doesn't reject them (max 2048px longest side)
+    let imgBuffer = req.file.buffer;
+    let imgMime = req.file.mimetype;
+    const metadata = await sharp(req.file.buffer).metadata();
+    const longest = Math.max(metadata.width || 0, metadata.height || 0);
+    if (longest > 2048) {
+      console.log(`[inventory] Resizing image from ${metadata.width}x${metadata.height} (${(req.file.buffer.length / 1024 / 1024).toFixed(1)}MB)`);
+      imgBuffer = await sharp(req.file.buffer)
+        .resize({ width: 2048, height: 2048, fit: "inside" })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+      imgMime = "image/jpeg";
+      console.log(`[inventory] Resized to ${(imgBuffer.length / 1024).toFixed(0)}KB`);
+    }
 
-    // Upload the raw document to S3 (non-fatal)
+    const base64 = imgBuffer.toString("base64");
+    const rawResult = await extractDocument(base64, imgMime);
+
+    // Verification pass: send extracted text to regular LLM to fix OCR errors
+    console.log("[inventory] Running LLM verification pass...");
+    const result = await verifyExtraction(rawResult);
+
+    // Upload the original (full-res) document to S3 (non-fatal)
     let rawDocUrl: string | null = null;
     let rawDocS3Key: string | null = null;
     try {

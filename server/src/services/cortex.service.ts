@@ -171,6 +171,56 @@ Rules:
 }
 
 /**
+ * Stage 1b: Verify and correct OCR extraction using the text LLM.
+ * Fixes obvious OCR misreads (e.g. CARBAGE → CABBAGE) knowing these are food/restaurant supply items.
+ */
+export async function verifyExtraction(
+  extraction: {
+    vendor: { name: string; address: string | null; phone: string | null; email: string | null };
+    invoice: { invoiceNumber: string | null; date: string | null; dueDate: string | null; poReference: string | null };
+    lineItems: Array<{ rawDescription: string; qty: number; unitAsPrinted: string; unitPrice: number; lineTotal: number; confidence: number }>;
+    totals: { subtotal: number | null; freight: number | null; tax: number | null; total: number };
+    overallConfidence: number;
+  }
+): Promise<typeof extraction> {
+  const systemPrompt = `You are a verification system for OCR-extracted restaurant/food supply invoices. The data was extracted by a vision model and may contain OCR errors.
+
+Review the extracted JSON and fix ONLY obvious OCR misreads. These are food service/restaurant supply items.
+
+Common OCR errors to fix:
+- Misspelled food names: "CARBAGE" → "CABBAGE", "ONTONG" → "ONION", "LETTICE" → "LETTUCE", "TOMATOE" → "TOMATO", "BROCOLI" → "BROCCOLI", "POTATOS" → "POTATOES", "CHEDAR" → "CHEDDAR", etc.
+- Vendor name typos if obviously wrong
+- Number transpositions in prices ONLY if math doesn't add up (qty × unitPrice should ≈ lineTotal)
+
+Rules:
+- Fix ONLY clear OCR errors — do not rename, normalize, or rephrase anything
+- Keep rawDescription corrections minimal — fix spelling only, preserve all pack sizes and codes
+- Preserve exact unitAsPrinted, qty, codes, and formatting
+- Recalculate totals.subtotal as the sum of all lineTotal values
+- If lineTotal doesn't match qty × unitPrice, trust the lineTotal (it's printed on the invoice)
+- Lower confidence on items you had to correct
+- Return the COMPLETE corrected JSON in the exact same schema — no extra fields, no missing fields
+- No markdown, no explanation — only JSON.`;
+
+  const reply = await cortexChat(
+    [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: JSON.stringify(extraction) },
+    ],
+    { maxTokens: 4000, temperature: 0.1 }
+  );
+
+  console.log("[cortex] Verification reply (first 300 chars):", reply.substring(0, 300));
+  const jsonStr = extractJSON(reply);
+  try {
+    return JSON.parse(jsonStr);
+  } catch (err) {
+    console.error("[cortex] Verification JSON parse failed, using original extraction:", jsonStr.substring(0, 500));
+    return extraction;
+  }
+}
+
+/**
  * Stage 2: Normalize line items using default LLM pool.
  * Takes raw extracted items + existing inventory items, returns canonical names,
  * pack format explosion to base units, and fuzzy match against existing items.
