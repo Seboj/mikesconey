@@ -41,6 +41,15 @@ try {
       <h1 class="font-heading text-2xl font-bold text-brand-text-heading">Customers</h1>
       <p class="text-sm text-brand-text-muted mt-1">{total} total customer{total !== 1 ? "s" : ""}</p>
     </div>
+    <button
+      id="add-customer-btn"
+      class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark transition-colors"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Customer
+    </button>
   </div>
 
   <!-- Search -->
@@ -250,6 +259,51 @@ try {
       </div>
     </div>
   </div>
+  <!-- Add Customer Modal -->
+  <div id="add-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+      <h3 class="font-heading text-lg font-bold text-brand-text-heading mb-4">Add Customer</h3>
+      <form id="add-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="add-firstname" class="block text-sm font-medium text-brand-text-body mb-1">First Name <span class="text-red-500">*</span></label>
+            <input type="text" id="add-firstname" required class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30" />
+          </div>
+          <div>
+            <label for="add-lastname" class="block text-sm font-medium text-brand-text-body mb-1">Last Name</label>
+            <input type="text" id="add-lastname" class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30" />
+          </div>
+        </div>
+        <div>
+          <label for="add-email" class="block text-sm font-medium text-brand-text-body mb-1">Email <span class="text-red-500">*</span></label>
+          <input type="email" id="add-email" required class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30" />
+        </div>
+        <div>
+          <label for="add-phone" class="block text-sm font-medium text-brand-text-body mb-1">Phone</label>
+          <input type="tel" id="add-phone" class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30" />
+        </div>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="add-optinemail" checked class="rounded border-stone-300 text-brand-primary focus:ring-brand-primary/30" />
+            Email opt-in
+          </label>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="add-optinsms" class="rounded border-stone-300 text-brand-primary focus:ring-brand-primary/30" />
+            SMS opt-in
+          </label>
+        </div>
+        <div>
+          <label for="add-notes" class="block text-sm font-medium text-brand-text-body mb-1">Notes</label>
+          <textarea id="add-notes" rows="2" placeholder="Optional notes..." class="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/30 resize-none"></textarea>
+        </div>
+        <p id="add-error" class="hidden text-sm text-red-600"></p>
+        <div class="flex gap-3 justify-end">
+          <button type="button" id="add-cancel" class="px-4 py-2 text-sm text-brand-text-body bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors">Cancel</button>
+          <button type="submit" id="add-submit" class="px-4 py-2 text-sm text-white bg-brand-primary rounded-lg hover:bg-brand-primary-dark transition-colors">Add Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </AdminLayout>
 
 <script>
@@ -339,8 +393,70 @@ try {
     }
   });
 
+  // Add customer modal
+  const addModal = document.getElementById("add-modal")!;
+  const addForm = document.getElementById("add-form") as HTMLFormElement;
+  const addError = document.getElementById("add-error")!;
+
+  document.getElementById("add-customer-btn")?.addEventListener("click", () => {
+    addForm.reset();
+    (document.getElementById("add-optinemail") as HTMLInputElement).checked = true;
+    addError.classList.add("hidden");
+    addModal.classList.remove("hidden");
+  });
+
+  document.getElementById("add-cancel")?.addEventListener("click", () => {
+    addModal.classList.add("hidden");
+  });
+
+  addForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById("add-submit") as HTMLButtonElement;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Adding...";
+    addError.classList.add("hidden");
+
+    const body: any = {
+      firstName: (document.getElementById("add-firstname") as HTMLInputElement).value.trim(),
+      email: (document.getElementById("add-email") as HTMLInputElement).value.trim(),
+      optInEmail: (document.getElementById("add-optinemail") as HTMLInputElement).checked,
+      optInSms: (document.getElementById("add-optinsms") as HTMLInputElement).checked,
+    };
+
+    const lastName = (document.getElementById("add-lastname") as HTMLInputElement).value.trim();
+    if (lastName) body.lastName = lastName;
+
+    const phone = (document.getElementById("add-phone") as HTMLInputElement).value.trim();
+    if (phone) body.phone = phone;
+
+    const notes = (document.getElementById("add-notes") as HTMLTextAreaElement).value.trim();
+    if (notes) body.notes = notes;
+
+    try {
+      const res = await fetch("/api/admin/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        addError.textContent = data.error || "Failed to add customer";
+        addError.classList.remove("hidden");
+      }
+    } catch {
+      addError.textContent = "Network error";
+      addError.classList.remove("hidden");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Add Customer";
+    }
+  });
+
   // Close modals on backdrop click
-  [editModal, deleteModal].forEach((modal) => {
+  [editModal, deleteModal, addModal].forEach((modal) => {
     modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.classList.add("hidden");
     });

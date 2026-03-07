@@ -4,6 +4,8 @@ import {
   getDashboardStats,
   listCustomers,
   getCustomerById,
+  createCustomer,
+  findCustomerByEmail,
   updateCustomer,
   deleteCustomer,
 } from "../services/customer.service.js";
@@ -28,6 +30,46 @@ dashboardRouter.get("/customers", async (req, res) => {
 
   const result = await listCustomers(params);
   res.json(result);
+});
+
+// Create customer (admin — no rate limit)
+const customerCreateSchema = z.object({
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().max(100).optional(),
+  email: z.string().email().max(255),
+  phone: z.string().max(20).optional(),
+  optInEmail: z.boolean().optional(),
+  optInSms: z.boolean().optional(),
+  source: z.string().max(50).optional(),
+  notes: z.string().nullable().optional(),
+});
+
+dashboardRouter.post("/customers", async (req, res) => {
+  const parsed = customerCreateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res
+      .status(400)
+      .json({ error: "Invalid input", details: parsed.error.flatten() });
+    return;
+  }
+
+  const existing = await findCustomerByEmail(parsed.data.email);
+  if (existing) {
+    res.status(409).json({ error: "A customer with this email already exists" });
+    return;
+  }
+
+  const customer = await createCustomer({
+    ...parsed.data,
+    source: parsed.data.source || "admin",
+  });
+
+  // If notes were provided, update the customer (createCustomer doesn't accept notes)
+  if (parsed.data.notes) {
+    await updateCustomer(customer.id, { notes: parsed.data.notes });
+  }
+
+  res.status(201).json(customer);
 });
 
 // Get single customer
