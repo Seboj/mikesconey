@@ -25,7 +25,7 @@ export async function uploadImage(
   buffer: Buffer,
   contentType: string
 ): Promise<{ key: string; url: string }> {
-  const key = `gallery/${randomUUID()}.webp`;
+  const key = `cdn/gallery/${randomUUID()}.webp`;
 
   await s3.send(
     new PutObjectCommand({
@@ -50,7 +50,7 @@ export async function uploadFile(
   prefix: string,
   ext: string
 ): Promise<{ key: string; url: string }> {
-  const key = `${prefix}/${randomUUID()}.${ext}`;
+  const key = `cdn/${prefix}/${randomUUID()}.${ext}`;
 
   // Try S3 first
   try {
