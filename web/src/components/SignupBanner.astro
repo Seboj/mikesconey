@@ -44,16 +44,17 @@
         </div>
 
         <div>
-          <label for="signup-phone" class="sr-only">Phone (optional)</label>
+          <label for="signup-phone" class="sr-only">Phone (optional — for text deals)</label>
           <input
             type="tel"
             id="signup-phone"
             name="phone"
-            placeholder="Phone Number (optional)"
+            placeholder="Phone Number (optional — for text deals)"
             class="w-full sm:w-1/2 mx-auto block px-4 py-3 rounded-lg border border-stone-700 bg-brand-dark-deeper text-brand-cream placeholder:text-stone-600 focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary transition-colors"
           />
         </div>
 
+        <!-- Email consent (always shown) -->
         <div class="flex items-start justify-center gap-2 text-sm text-stone-400">
           <input
             type="checkbox"
@@ -64,6 +65,21 @@
           />
           <label for="signup-consent">
             I agree to receive deals and specials via email. Unsubscribe anytime.
+          </label>
+        </div>
+
+        <!-- SMS consent (shown when phone is entered) -->
+        <div id="sms-consent-row" class="hidden flex items-start justify-center gap-2 text-sm text-stone-400">
+          <input
+            type="checkbox"
+            id="signup-sms-consent"
+            name="smsConsent"
+            class="mt-0.5 rounded border-stone-600 bg-brand-dark-deeper text-brand-primary focus:ring-brand-primary/30"
+          />
+          <label for="signup-sms-consent" class="text-left max-w-md">
+            I agree to receive recurring automated promotional text messages (SMS/MMS) from Mike's Coney Island at the number provided. Consent is not a condition of purchase. Msg &amp; data rates may apply. Msg frequency varies (up to 8/mo). Reply STOP to cancel, HELP for help.
+            <a href="/privacy/" class="text-brand-secondary hover:underline">Privacy Policy</a> &amp;
+            <a href="/terms/#sms-terms" class="text-brand-secondary hover:underline">Terms</a>.
           </label>
         </div>
 
@@ -102,6 +118,22 @@
   const btnText = document.getElementById("signup-btn-text")!;
   const spinner = document.getElementById("signup-spinner")!;
   const submitBtn = form.querySelector("button[type='submit']") as HTMLButtonElement;
+  const phoneInput = document.getElementById("signup-phone") as HTMLInputElement;
+  const smsConsentRow = document.getElementById("sms-consent-row")!;
+  const smsConsentBox = document.getElementById("signup-sms-consent") as HTMLInputElement;
+
+  // Show/hide SMS consent when phone number is entered
+  phoneInput.addEventListener("input", () => {
+    const hasPhone = phoneInput.value.trim().length > 0;
+    if (hasPhone) {
+      smsConsentRow.classList.remove("hidden");
+      smsConsentRow.classList.add("flex");
+    } else {
+      smsConsentRow.classList.add("hidden");
+      smsConsentRow.classList.remove("flex");
+      smsConsentBox.checked = false;
+    }
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -112,12 +144,15 @@
     spinner.classList.remove("hidden");
 
     const formData = new FormData(form);
+    const phone = (formData.get("phone") as string)?.trim() || "";
+    const smsConsent = smsConsentBox.checked;
+
     const body = {
       firstName: formData.get("firstName"),
       email: formData.get("email"),
-      phone: formData.get("phone") || undefined,
+      phone: phone || undefined,
       optInEmail: true,
-      optInSms: !!formData.get("phone"),
+      optInSms: phone && smsConsent,
     };
 
     try {

@@ -1,0 +1,147 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { fetchContent } from "../lib/api";
+import type { SiteInfoContent, HoursContent } from "../../../shared/types";
+
+const [siteInfo, hours] = await Promise.all([
+  fetchContent<SiteInfoContent>("site_info"),
+  fetchContent<HoursContent>("hours"),
+]);
+
+const lastUpdated = "March 6, 2026";
+---
+
+<BaseLayout title="Privacy Policy" siteInfo={siteInfo} hours={hours}>
+  <section class="bg-brand-dark-deeper relative overflow-hidden py-14 md:py-20">
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+    <div class="relative z-10 mx-auto max-w-4xl px-4 md:px-8 text-center">
+      <h1 class="font-display text-3xl md:text-5xl text-brand-primary text-neon-red mb-3">
+        Privacy Policy
+      </h1>
+      <div class="divider-amber w-16 mx-auto mb-4"></div>
+      <p class="text-stone-400 text-sm">Last updated: {lastUpdated}</p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-3xl px-4 md:px-8 py-8 md:py-12">
+    <div class="prose-legal space-y-8 text-stone-300 text-sm leading-relaxed">
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Introduction</h2>
+        <p>
+          Mike's Coney Island ("we," "us," or "our") operates the website
+          <a href="https://www.mikesconeyisland.com" class="text-brand-secondary hover:underline">www.mikesconeyisland.com</a>
+          and related services. This Privacy Policy explains how we collect, use, disclose, and safeguard
+          your information when you visit our website, sign up for text message communications, or
+          otherwise interact with us.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Information We Collect</h2>
+        <p class="mb-3">We may collect the following types of information:</p>
+        <ul class="list-disc pl-5 space-y-2 text-stone-400">
+          <li><strong class="text-stone-300">Contact information</strong> — name, email address, phone number, and mailing address you provide when contacting us, placing an order, or opting in to communications.</li>
+          <li><strong class="text-stone-300">Mobile phone number</strong> — when you opt in to receive text messages (SMS/MMS) from us.</li>
+          <li><strong class="text-stone-300">Website usage data</strong> — pages visited, time on site, browser type, device information, and IP address collected automatically through cookies and similar technologies.</li>
+          <li><strong class="text-stone-300">Order information</strong> — details related to purchases or inquiries you make.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">How We Use Your Information</h2>
+        <ul class="list-disc pl-5 space-y-2 text-stone-400">
+          <li>To provide, operate, and maintain our services</li>
+          <li>To send you text messages about specials, promotions, updates, and other marketing communications you have opted in to receive</li>
+          <li>To respond to your inquiries and provide customer support</li>
+          <li>To improve our website and customer experience</li>
+          <li>To comply with legal obligations</li>
+        </ul>
+      </section>
+
+      <section id="sms-privacy">
+        <h2 class="font-display text-xl text-brand-cream mb-3">SMS/Text Message Privacy</h2>
+        <p class="mb-3">
+          When you opt in to receive text messages from Mike's Coney Island, we collect your mobile
+          phone number for the sole purpose of sending you the text message communications you
+          requested. By opting in, you consent to receive recurring automated marketing and
+          informational text messages from us.
+        </p>
+        <div class="bg-brand-dark rounded-lg border border-stone-800 p-5 space-y-3">
+          <p><strong class="text-brand-cream">Message frequency:</strong> <span class="text-stone-400">Message frequency varies. You may receive up to 8 messages per month.</span></p>
+          <p><strong class="text-brand-cream">Message and data rates may apply.</strong> <span class="text-stone-400">Check with your mobile carrier for details on your messaging plan.</span></p>
+          <p><strong class="text-brand-cream">Opt out:</strong> <span class="text-stone-400">Text <strong class="text-brand-secondary">STOP</strong> to any message to unsubscribe at any time. You will receive a one-time confirmation message.</span></p>
+          <p><strong class="text-brand-cream">Help:</strong> <span class="text-stone-400">Text <strong class="text-brand-secondary">HELP</strong> to any message for assistance, or contact us at (248) 634-3555.</span></p>
+        </div>
+        <p class="mt-4">
+          <strong class="text-brand-cream">We do not sell, rent, share, or otherwise disclose your mobile phone number
+          or any information collected through our SMS program to third parties or affiliates for
+          marketing or promotional purposes.</strong> Your phone number is only shared with our SMS
+          service provider for the purpose of delivering the messages you requested.
+        </p>
+        <p class="mt-3">
+          Consent to receive text messages is not a condition of any purchase. You may opt in or
+          opt out at any time without affecting your ability to do business with us.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Cookies and Tracking</h2>
+        <p>
+          Our website may use cookies and similar tracking technologies to enhance your browsing
+          experience. You can control cookie preferences through your browser settings. Disabling
+          cookies may limit certain features of the website.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Third-Party Services</h2>
+        <p>
+          We may use third-party services (such as website hosting, analytics, and SMS delivery
+          platforms) to operate our business. These providers only have access to your information
+          as needed to perform their functions and are obligated to maintain its confidentiality.
+          We do not sell your personal information to any third party.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Data Security</h2>
+        <p>
+          We implement reasonable security measures to protect your personal information.
+          However, no method of transmission over the internet or electronic storage is 100%
+          secure, and we cannot guarantee absolute security.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Children's Privacy</h2>
+        <p>
+          Our services are not directed to individuals under the age of 13. We do not knowingly
+          collect personal information from children. If we become aware that a child has provided
+          us with personal information, we will take steps to delete such information.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Changes to This Policy</h2>
+        <p>
+          We may update this Privacy Policy from time to time. Changes will be posted on this page
+          with a revised "Last updated" date. We encourage you to review this policy periodically.
+        </p>
+      </section>
+
+      <section>
+        <h2 class="font-display text-xl text-brand-cream mb-3">Contact Us</h2>
+        <p>If you have questions about this Privacy Policy, contact us at:</p>
+        <div class="mt-3 text-stone-400">
+          <p>Mike's Coney Island</p>
+          <p>15203 N Holly Rd, Holly, MI 48442</p>
+          <p>Phone: <a href="tel:+12486343555" class="text-brand-secondary hover:underline">(248) 634-3555</a></p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</BaseLayout>

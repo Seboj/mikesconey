@@ -39,10 +39,14 @@ export const onRequest = defineMiddleware(async ({ url, request, redirect }, nex
   }
 
   if (SITE_MODE === "coming_soon") {
-    // Allow passthrough paths and the coming-soon page itself
+    // Allow passthrough paths, legal pages, and the coming-soon page itself
     const isPassthrough =
       path === "/coming-soon" ||
       path === "/coming-soon/" ||
+      path === "/privacy" ||
+      path === "/privacy/" ||
+      path === "/terms" ||
+      path === "/terms/" ||
       PASSTHROUGH_PREFIXES.some((p) => path.startsWith(p));
 
     if (!isPassthrough) {
